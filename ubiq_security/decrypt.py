@@ -33,7 +33,7 @@ from .algorithm import algorithm
 
 class decryption:
     def _endpoint_base(self):
-        return 'http://' + self._host + '/api/v0'
+        return self._host + '/api/v0'
 
     def reset(self):
         """Reset the internal state of the decryption object
@@ -76,7 +76,12 @@ class decryption:
             optional portion of the string indicating the server to which
             to make the request.
         """
+
+        # If the host does not begin with either http or https
+        # insert https://
         self._host = creds.host
+        if (not self._host.lower().startswith('http')):
+            self._host = "https://" + self._host
 
         self._papi = creds.access_key_id
         self._sapi = creds.secret_signing_key
