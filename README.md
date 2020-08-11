@@ -50,7 +50,7 @@ or read from the default location [~/.ubiq/credentials]
 
 
 ```python
-import ubiq_security
+import ubiq_security as ubiq
 ```
 
 ### Read credentials from a specific file and use a specific profile 
@@ -94,7 +94,7 @@ will be returned.
 
 
 ```python
-import ubiq_security
+import ubiq_security as ubiq
 
 encrypted_data = ubiq.encrypt(credentials, plaintext_data)
 ```
@@ -105,7 +105,7 @@ Pass credentials and encrypted data into the decryption function.  The plaintext
 will be returned.
 
 ```python
-import ubiq_security
+import ubiq_security as ubiq
 
 plaintext_data = ubiq.encrypt(credentials, encrypted_data)
 ```
@@ -120,7 +120,7 @@ plaintext_data = ubiq.encrypt(credentials, encrypted_data)
 
 
 ```python
-import ubiq_security
+import ubiq_security as ubiq
 
 # Process 1 MiB of plaintext data at a time
 BLOCK_SIZE = 1024 * 1024
@@ -156,7 +156,7 @@ BLOCK_SIZE = 1024 * 1024
 
 
 ```python
-import ubiq_security
+import ubiq_security as ubiq
 
 # Process 1 MiB of encrypted data at a time
 BLOCK_SIZE = 1024 * 1024
