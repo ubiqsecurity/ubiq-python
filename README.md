@@ -16,7 +16,7 @@ See the [Python API docs](https://ubiqsecurity.com/docs/api?lang=python).
 You may want to make sure you are running the latest version of pip3 by
 first executing
 ```sh
-pip3 install --upgrade pip3
+pip3 install --upgrade pip
 ```
 
 You don't need this source code unless you want to modify the package. If you just want to use the package, install from PyPi using pip3, a package manager for Python3.
