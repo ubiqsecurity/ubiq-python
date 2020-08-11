@@ -56,6 +56,7 @@ setuptools.setup(
         "License :: Free To Use But Restricted",
         "Operating System :: OS Independent",
         "Programming Language :: Python",
+        "Programming Language :: Python :: 3.5",
         "Programming Language :: Python :: 3.6",
         "Programming Language :: Python :: 3.7",
         "Programming Language :: Python :: 3.8",
@@ -63,6 +64,6 @@ setuptools.setup(
         "Topic :: Security",
         "Topic :: Security :: Cryptography"
     ],
-    python_requires='>=3.6',
+    python_requires='>=3.5',
 )
 

@@ -39,7 +39,7 @@ You may need to run the python3 commands above using sudo.
 
 ### Requirements
 
--   Python 3.6+
+-   Python 3.5+
 
 ## Usage
 
