@@ -13,11 +13,18 @@ See the [Python API docs](https://ubiqsecurity.com/docs/api?lang=python).
 ## Installation
 
 #### Using the package manager:
+You may want to make sure you are running the latest version of pip3 by
+first executing
+```sh
+pip3 install --upgrade pip3
+```
+
 You don't need this source code unless you want to modify the package. If you just want to use the package, install from PyPi using pip3, a package manager for Python3.
 
 ```sh
 pip3 install --upgrade ubiq-security
 ```
+
 
 #### Installing from source:
 From within the cloned git repository directory, Install from source with:
@@ -32,7 +39,7 @@ You may need to run the python3 commands above using sudo.
 
 ### Requirements
 
--   Python 3.7+
+-   Python 3.6+
 
 ## Usage
 
