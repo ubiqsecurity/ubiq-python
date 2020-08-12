@@ -127,10 +127,10 @@ USAGE
         Make sure either the simple or piecewise APIs have been specified
         '''
         if encryption == decryption:
-            raise CLIError("Encryption or Decrytion have to be specified by not both")
+            raise CLIError("Encryption or Decrytion have to be specified but not both")
 
         if simple == piecewise:
-            raise CLIError("simple or piecewise API option need to be specified by not both")
+            raise CLIError("simple or piecewise API option need to be specified but not both")
 
         creds = ubiq.configCredentials(args.credentials, args.profile)
 
