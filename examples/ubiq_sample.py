@@ -176,7 +176,7 @@ def simple_encryption(infile, outfile, creds):
     try:
        ct = ubiq.encrypt(creds,
                   data)
-       outfile.write(ct)#.encode(encoding='utf_8', errors='strict'))
+       outfile.write(ct)
     except Exception as err:
        print("Error performing encryption: ", repr(err))
 
@@ -185,7 +185,7 @@ def simple_decryption(infile, outfile, creds):
     data = infile.read()
     try:
        pt = ubiq.decrypt(creds, data)
-       outfile.write(pt)#.encode(encoding='utf_8', errors='strict'))
+       outfile.write(pt)
     except Exception as err:
        print("Error performing decryption: ", repr(err))
 
