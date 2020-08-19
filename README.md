@@ -82,7 +82,7 @@ credentials = ubiq.credentials(access_key_id = "...", secret_signing_key = "..."
 ### Handling exceptions
 
 Unsuccessful requests raise exceptions. The class of the exception will reflect
-the sort of error that occurred. Please see the [Api Reference](https://ubiqsecurity.com/docs/api/errors/handling)
+the sort of error that occurred. Please see the [Api Reference](https://dev.ubiqsecurity.com/docs/api#exceptions)
 for a description of the error classes you should handle, and for information on 
 how to inspect these errors.
 
