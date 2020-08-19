@@ -8,7 +8,7 @@ to encrypt and decrypt data
 
 ## Documentation
 
-See the [Python API docs](https://ubiqsecurity.com/docs/api?lang=python).
+See the [Python API docs](https://dev.ubiqsecurity.com/docs/api).
 
 ## Installation
 
