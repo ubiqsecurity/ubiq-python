@@ -16,7 +16,7 @@
 #     https://ubiqsecurity.com/legal
 #
 
-UBIQ_HOST = 'api.ubiqsecurity.com:8811'
+UBIQ_HOST = 'api.ubiqsecurity.com'
 
 from .auth import http_auth
 from .encrypt import encryption, encrypt
