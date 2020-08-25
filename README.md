@@ -107,7 +107,7 @@ will be returned.
 ```python
 import ubiq_security as ubiq
 
-plaintext_data = ubiq.encrypt(credentials, encrypted_data)
+plaintext_data = ubiq.decrypt(credentials, encrypted_data)
 ```
 
 
