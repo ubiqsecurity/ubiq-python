@@ -1,5 +1,7 @@
 # Changelog
 
+* Added support for AES-128-GCM
+
 ## 1.0.4 - 2020-08-23
 * Remove port number from default URL for api.ubiqsecurity.com
 
