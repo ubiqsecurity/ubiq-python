@@ -48,6 +48,10 @@ class algorithm:
         (0, 'aes-256-gcm'): (crypto.primitives.ciphers.algorithms.AES,
                              crypto.primitives.ciphers.modes.GCM,
                              32, 12, 16),
+        (1 , 'aes-128-gcm'): (crypto.primitives.ciphers.algorithms.AES,
+                             crypto.primitives.ciphers.modes.GCM,
+                             16, 12, 16),
+
     }
 
     def __init__(self, ident):
