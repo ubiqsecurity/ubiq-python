@@ -136,7 +136,7 @@ BLOCK_SIZE = 1024 * 1024
    # Loop until the end of the input file is reached
    while True:
        data = infile.read(BLOCK_SIZE)
-       encrypted_data += encryption.update(data))
+       encrypted_data += encryption.update(data)
        if (len(data) != BLOCK_SIZE):
           break
 
@@ -167,7 +167,7 @@ BLOCK_SIZE = 1024 * 1024
     decryption = ubiq.decryption(creds)
 
     # Start the decryption and get any header information
-    plaintext_data = decryption.begin())
+    plaintext_data = decryption.begin()
 
     # Loop until the end of the input file is reached
     while True:
