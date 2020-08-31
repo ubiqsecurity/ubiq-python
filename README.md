@@ -44,7 +44,7 @@ You may need to run the python3 commands above using sudo.
 ## Usage
 
 The library needs to be configured with your account credentials which is
-available in your [Ubiq Dashboard][credentials].   The credentials can be 
+available in your [Ubiq Dashboard][dashboard] [credentials][credentials].   The credentials can be
 explicitly set, set using environment variables, loaded from an explicit file
 or read from the default location [~/.ubiq/credentials]
 
@@ -181,3 +181,6 @@ BLOCK_SIZE = 1024 * 1024
     plaintext_data += decryption.end()
 
 ```
+[dashboard]:https://dev.ubiqsecurity.com/docs/dashboard
+[credentials]:https://dev.ubiqsecurity.com/docs/how-to-create-api-keys
+g
