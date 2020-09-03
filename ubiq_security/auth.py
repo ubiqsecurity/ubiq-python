@@ -26,6 +26,8 @@ import requests.auth
 import time
 import urllib.parse
 
+from .version import VERSION
+
 class http_auth(requests.auth.AuthBase):
     """HTTP Authentication for the Ubiq Platform
 
@@ -57,6 +59,8 @@ class http_auth(requests.auth.AuthBase):
         signature calculation and will be added by this code as
         necessary. The modified request is returned.
         """
+
+        r.headers['User-Agent'] = 'ubiq-python/' + VERSION
 
         # the '(request-target)' is part of the signed data.
         # it's value is 'http_method path?query'
