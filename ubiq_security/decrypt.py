@@ -117,7 +117,8 @@ class decryption:
         which it was output from the encryption.update function.
 
         data:
-            (A portion of) the cipher text to be decrypted
+            (A portion of) the cipher text to be decrypted.  data
+            value has to be contained in a bytes, bytearray or memoryview object.
 
         returns:
             any plain text produced by the call
