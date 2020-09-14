@@ -123,6 +123,9 @@ class decryption:
             any plain text produced by the call
         """
 
+        if not isinstance(data, (bytes, bytearray, memoryview)):
+            raise RuntimeError("Data must be bytes, bytearray, or memoryview objects")
+
         #
         # each encryption has a header on it that identifies the algorithm
         # used  and an encryption of the data key that was used to encrypt
