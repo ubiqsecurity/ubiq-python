@@ -181,6 +181,6 @@ BLOCK_SIZE = 1024 * 1024
     plaintext_data += decryption.end()
 
 ```
-[dashboard]:https://dev.ubiqsecurity.com/docs/dashboard
+[dashboard]:https://dashboard.ubiqsecurity.com/
 [credentials]:https://dev.ubiqsecurity.com/docs/how-to-create-api-keys
-g
+
