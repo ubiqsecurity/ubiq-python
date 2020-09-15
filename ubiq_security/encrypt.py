@@ -181,10 +181,15 @@ class encryption:
                 iv + self._key['encrypted'])
 
     def update(self, data):
-        """Encrypt some plain text
+        """Encrypt some plain text - 
+        plain text value has to be contained in a bytes, bytearray or memoryview object.
 
         Any cipher text produced by the operation is returned
         """
+        
+        if not isinstance(data, (bytes, bytearray, memoryview)):
+            raise RuntimeError("Data must be bytes, bytearray, or memoryview objects")
+
         return self._enc.update(data)
 
     def end(self):

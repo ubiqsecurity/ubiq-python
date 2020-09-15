@@ -90,7 +90,8 @@ how to inspect these errors.
 ### Encrypt a simple block of data
 
 Pass credentials and data into the encryption function.  The encrypted data
-will be returned.
+will be returned.  The plaintext input needs to be an instance of either bytes, bytearray or memoryview
+objects.
 
 
 ```python
@@ -102,7 +103,8 @@ encrypted_data = ubiq.encrypt(credentials, plaintext_data)
 ### Decrypt a simple block of data
 
 Pass credentials and encrypted data into the decryption function.  The plaintext data
-will be returned.
+will be returned.   The encrypted input needs to be an instance of either bytes, bytearray or memoryview
+objects.
 
 ```python
 import ubiq_security as ubiq
@@ -115,7 +117,8 @@ plaintext_data = ubiq.decrypt(credentials, encrypted_data)
 
 - Create an encryption object using the credentials.
 - Call the encryption instance begin method
-- Call the encryption instance update method repeatedly until all the data is processed
+- Call the encryption instance update method repeatedly until all the data is processed.
+The input data element must be an instance of either bytes, bytearray or memoryview objects.
 - Call the encryption instance end method
 
 
@@ -152,6 +155,7 @@ BLOCK_SIZE = 1024 * 1024
 - Create an instance of the decryption object using the credentials.
 - Call the decryption instance begin method
 - Call the decryption instance update method repeatedly until all the data is processed
+The input data element must be an instance of either bytes, bytearray or memoryview objects.
 - Call the decryption instance end method
 
 
