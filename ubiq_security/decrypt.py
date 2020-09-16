@@ -249,6 +249,13 @@ class decryption:
                         self._key['dec'] = self._key['algo'].decryptor(
                             self._key['raw'], vec)
                         self._key['uses'] += 1
+                        
+                        aad = struct.pack('!BBBBH',
+                            ver, sbz,
+                            alg, veclen, keylen);
+                        
+                        self._key['dec'].authenticate_additional_data(aad)
+
 
         # if the object has a key and a decryptor, then decrypt whatever
         # data is in the buffer, less any data that needs to be saved to
