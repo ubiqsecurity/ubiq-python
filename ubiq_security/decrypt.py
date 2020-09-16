@@ -163,7 +163,7 @@ class decryption:
                 ver, sbz, alg, veclen, keylen = struct.unpack(
                     fmt, self._buf[:fmtlen])
 
-                if ver != 0 or sbz != 0:
+                if (ver != 0 and ver != 1) or sbz != 0:
                     raise RuntimeError('invalid encryption header')
 
                 # does the buffer contain the entire header?
@@ -250,11 +250,12 @@ class decryption:
                             self._key['raw'], vec)
                         self._key['uses'] += 1
                         
-                        aad = struct.pack('!BBBBH',
-                            ver, sbz,
-                            alg, veclen, keylen);
+                        if ver == 1:
+                           aad = struct.pack('!BBBBH',
+                               ver, sbz,
+                               alg, veclen, keylen);
                         
-                        self._key['dec'].authenticate_additional_data(aad)
+                           self._key['dec'].authenticate_additional_data(aad)
 
 
         # if the object has a key and a decryptor, then decrypt whatever

@@ -174,7 +174,7 @@ class encryption:
         self._enc, iv = self._algo.encryptor(self._key['raw'])
 
         aad = struct.pack('!BBBBH',
-                            0, 0,
+                            1, 0,
                             self._algo.id,
                             len(iv), len(self._key['encrypted']));
 
