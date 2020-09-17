@@ -255,7 +255,7 @@ class decryption:
                                ver, sbz,
                                alg, veclen, keylen);
                         
-                           self._key['dec'].authenticate_additional_data(aad)
+                           self._key['dec'].authenticate_additional_data(aad + vec + key)
 
 
         # if the object has a key and a decryptor, then decrypt whatever

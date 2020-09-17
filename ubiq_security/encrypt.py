@@ -173,15 +173,16 @@ class encryption:
         # create a new encryption context
         self._enc, iv = self._algo.encryptor(self._key['raw'])
 
-        aad = struct.pack('!BBBBH',
+        hdr = struct.pack('!BBBBH',
                             1, 0,
                             self._algo.id,
                             len(iv), len(self._key['encrypted']));
 
+        aad = hdr + iv + self._key['encrypted']
         self._enc.authenticate_additional_data(aad)
 
         # create and return the header for the cipher text
-        return (aad + iv + self._key['encrypted'])
+        return (aad)
 
     def update(self, data):
         """Encrypt some plain text - 
