@@ -250,7 +250,7 @@ class decryption:
                             self._key['raw'], vec)
                         self._key['uses'] += 1
                         
-                        if ver == 1:
+                        if ver != 0:
                            aad = struct.pack('!BBBBH',
                                ver, sbz,
                                alg, veclen, keylen);
