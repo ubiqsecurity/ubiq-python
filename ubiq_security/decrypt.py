@@ -170,6 +170,9 @@ class decryption:
 
                 if len(self._buf) >= fmtlen + veclen + keylen:
 
+                    # Get the Header for AAD purposes.  Only needed if 
+                    # version != 0, but get it now anyways
+                    aad = self._buf[:fmtlen + veclen + keylen]
                     # extract the initialization vector and the key
                     vec = self._buf[fmtlen:fmtlen + veclen]
                     key = self._buf[fmtlen + veclen:fmtlen + veclen + keylen]
@@ -251,12 +254,7 @@ class decryption:
                         self._key['uses'] += 1
                         
                         if ver != 0:
-                           aad = struct.pack('!BBBBH',
-                               ver, sbz,
-                               alg, veclen, keylen);
-                        
-                           self._key['dec'].authenticate_additional_data(aad + vec + key)
-
+                           self._key['dec'].authenticate_additional_data(aad)
 
         # if the object has a key and a decryptor, then decrypt whatever
         # data is in the buffer, less any data that needs to be saved to

@@ -177,12 +177,11 @@ class encryption:
                             1, 0,
                             self._algo.id,
                             len(iv), len(self._key['encrypted']));
-
-        aad = hdr + iv + self._key['encrypted']
-        self._enc.authenticate_additional_data(aad)
+        hdr += iv + self._key['encrypted']               
+        self._enc.authenticate_additional_data(hdr)
 
         # create and return the header for the cipher text
-        return (aad)
+        return (hdr)
 
     def update(self, data):
         """Encrypt some plain text - 
