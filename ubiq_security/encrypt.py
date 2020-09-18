@@ -173,8 +173,9 @@ class encryption:
         # create a new encryption context
         self._enc, iv = self._algo.encryptor(self._key['raw'])
 
+        # VER 0, Flags 1 bit means AAD
         hdr = struct.pack('!BBBBH',
-                            1, 0,
+                            0, 1,
                             self._algo.id,
                             len(iv), len(self._key['encrypted']));
         hdr += iv + self._key['encrypted']               

@@ -160,10 +160,11 @@ class decryption:
             # and the key?
 
             if len(self._buf) >= fmtlen:
-                ver, sbz, alg, veclen, keylen = struct.unpack(
+                ver, flags, alg, veclen, keylen = struct.unpack(
                     fmt, self._buf[:fmtlen])
 
-                if (ver != 0 and ver != 1) or sbz != 0:
+                # For VER 0, lsb of indicates AAD or not
+                if (ver != 0) or (flags & ~1):
                     raise RuntimeError('invalid encryption header')
 
                 # does the buffer contain the entire header?
@@ -253,7 +254,7 @@ class decryption:
                             self._key['raw'], vec)
                         self._key['uses'] += 1
                         
-                        if ver != 0:
+                        if (flags & 1):
                            self._key['dec'].authenticate_additional_data(aad)
 
         # if the object has a key and a decryptor, then decrypt whatever
