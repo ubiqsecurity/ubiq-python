@@ -175,7 +175,7 @@ class encryption:
 
         # VER 0, Flags 1 bit means AAD
         hdr = struct.pack('!BBBBH',
-                            0, 1,
+                            0, algorithm.UBIQ_AES_AAD_FLAG,
                             self._algo.id,
                             len(iv), len(self._key['encrypted']));
         hdr += iv + self._key['encrypted']               
