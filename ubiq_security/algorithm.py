@@ -34,7 +34,7 @@ class algorithm:
     encryptions or decryptions using the algorithm specified.
     """
 
-    UBIQ_AES_AAD_FLAG = 0b00000001
+    UBIQ_HEADER_V0_FLAG_AAD = 0b00000001
 
     #
     # names and numbers must be unique, individually. that is, using the

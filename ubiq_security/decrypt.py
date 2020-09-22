@@ -164,7 +164,7 @@ class decryption:
                     fmt, self._buf[:fmtlen])
 
                 # For VER 0, lsb of indicates AAD or not
-                if (ver != 0) or (flags & ~algorithm.UBIQ_AES_AAD_FLAG):
+                if (ver != 0) or (flags & ~algorithm.UBIQ_HEADER_V0_FLAG_AAD):
                     raise RuntimeError('invalid encryption header')
 
                 # does the buffer contain the entire header?
@@ -254,7 +254,7 @@ class decryption:
                             self._key['raw'], vec)
                         self._key['uses'] += 1
                         
-                        if (flags & algorithm.UBIQ_AES_AAD_FLAG):
+                        if (flags & algorithm.UBIQ_HEADER_V0_FLAG_AAD):
                            self._key['dec'].authenticate_additional_data(aad)
 
         # if the object has a key and a decryptor, then decrypt whatever
