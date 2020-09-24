@@ -160,16 +160,20 @@ class decryption:
             # and the key?
 
             if len(self._buf) >= fmtlen:
-                ver, sbz, alg, veclen, keylen = struct.unpack(
+                ver, flags, alg, veclen, keylen = struct.unpack(
                     fmt, self._buf[:fmtlen])
 
-                if ver != 0 or sbz != 0:
+                # For VER 0, lsb of indicates AAD or not
+                if (ver != 0) or (flags & ~algorithm.UBIQ_HEADER_V0_FLAG_AAD):
                     raise RuntimeError('invalid encryption header')
 
                 # does the buffer contain the entire header?
 
                 if len(self._buf) >= fmtlen + veclen + keylen:
 
+                    # Get the Header for AAD purposes.  Only needed if 
+                    # version != 0, but get it now anyways
+                    aad = self._buf[:fmtlen + veclen + keylen]
                     # extract the initialization vector and the key
                     vec = self._buf[fmtlen:fmtlen + veclen]
                     key = self._buf[fmtlen + veclen:fmtlen + veclen + keylen]
@@ -249,6 +253,9 @@ class decryption:
                         self._key['dec'] = self._key['algo'].decryptor(
                             self._key['raw'], vec)
                         self._key['uses'] += 1
+                        
+                        if (flags & algorithm.UBIQ_HEADER_V0_FLAG_AAD):
+                           self._key['dec'].authenticate_additional_data(aad)
 
         # if the object has a key and a decryptor, then decrypt whatever
         # data is in the buffer, less any data that needs to be saved to
