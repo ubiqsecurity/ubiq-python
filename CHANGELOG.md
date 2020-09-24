@@ -1,7 +1,7 @@
 # Changelog
 
 
-## 
+## 1.0.6 - 2020-09-23
 * Pass client library name and version to server
 * Added AAD information to ciphers for encrypt and decrypT
 
