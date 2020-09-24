@@ -1,5 +1,10 @@
 # Changelog
 
+
+## 
+* Pass client library name and version to server
+* Added AAD information to ciphers for encrypt and decrypT
+
 ## 1.0.5 - 2020-08-25
 * Added support for AES-128-GCM
 
