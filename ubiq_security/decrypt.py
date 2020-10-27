@@ -1,20 +1,4 @@
 #!/usr/bin/env python3
-#
-# Copyright 2020 Ubiq Security, Inc., Proprietary and All Rights Reserved.
-#
-# NOTICE:  All information contained herein is, and remains the property
-# of Ubiq Security, Inc. The intellectual and technical concepts contained
-# herein are proprietary to Ubiq Security, Inc. and its suppliers and may be
-# covered by U.S. and Foreign Patents, patents in process, and are
-# protected by trade secret or copyright law. Dissemination of this
-# information or reproduction of this material is strictly forbidden
-# unless prior written permission is obtained from Ubiq Security, Inc.
-#
-# Your use of the software is expressly conditioned upon the terms
-# and conditions available at:
-#
-#     https://ubiqsecurity.com/legal
-#
 
 import base64
 import http
@@ -51,6 +35,7 @@ class decryption:
                     data=json.dumps(
                         { 'uses': self._key['uses'] }).encode('utf-8'),
                     auth=http_auth(self._papi, self._sapi))
+
             del self._key
 
     def __del__(self):
@@ -86,7 +71,7 @@ class decryption:
         self._papi = creds.access_key_id
         self._sapi = creds.secret_signing_key
         self._srsa = creds.secret_crypto_access_key
-        
+
     def begin(self):
         """Begin the decryption process
 
@@ -171,7 +156,7 @@ class decryption:
 
                 if len(self._buf) >= fmtlen + veclen + keylen:
 
-                    # Get the Header for AAD purposes.  Only needed if 
+                    # Get the Header for AAD purposes.  Only needed if
                     # version != 0, but get it now anyways
                     aad = self._buf[:fmtlen + veclen + keylen]
                     # extract the initialization vector and the key
@@ -253,9 +238,9 @@ class decryption:
                         self._key['dec'] = self._key['algo'].decryptor(
                             self._key['raw'], vec)
                         self._key['uses'] += 1
-                        
+
                         if (flags & algorithm.UBIQ_HEADER_V0_FLAG_AAD):
-                           self._key['dec'].authenticate_additional_data(aad)
+                            self._key['dec'].authenticate_additional_data(aad)
 
         # if the object has a key and a decryptor, then decrypt whatever
         # data is in the buffer, less any data that needs to be saved to

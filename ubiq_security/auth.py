@@ -1,20 +1,4 @@
 #!/usr/bin/env python3
-#
-# Copyright 2020 Ubiq Security, Inc., Proprietary and All Rights Reserved.
-#
-# NOTICE:  All information contained herein is, and remains the property
-# of Ubiq Security, Inc. The intellectual and technical concepts contained
-# herein are proprietary to Ubiq Security, Inc. and its suppliers and may be
-# covered by U.S. and Foreign Patents, patents in process, and are
-# protected by trade secret or copyright law. Dissemination of this
-# information or reproduction of this material is strictly forbidden
-# unless prior written permission is obtained from Ubiq Security, Inc.
-#
-# Your use of the software is expressly conditioned upon the terms
-# and conditions available at:
-#
-#     https://ubiqsecurity.com/legal
-#
 
 import base64
 import cryptography.hazmat.backends
@@ -103,8 +87,10 @@ class http_auth(requests.auth.AuthBase):
         hash_sha512 = cryptography.hazmat.primitives.hashes.Hash(
             cryptography.hazmat.primitives.hashes.SHA512(),
             backend=cryptography.hazmat.backends.default_backend())
+
         if r.body:
             hash_sha512.update(r.body)
+
         r.headers['Digest']  = 'SHA-512='
         r.headers['Digest'] += base64.b64encode(
             hash_sha512.finalize()).decode('utf-8')

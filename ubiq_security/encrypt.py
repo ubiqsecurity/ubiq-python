@@ -1,20 +1,4 @@
 #!/usr/bin/env python3
-#
-# Copyright 2020 Ubiq Security, Inc., Proprietary and All Rights Reserved.
-#
-# NOTICE:  All information contained herein is, and remains the property
-# of Ubiq Security, Inc. The intellectual and technical concepts contained
-# herein are proprietary to Ubiq Security, Inc. and its suppliers and may be
-# covered by U.S. and Foreign Patents, patents in process, and are
-# protected by trade secret or copyright law. Dissemination of this
-# information or reproduction of this material is strictly forbidden
-# unless prior written permission is obtained from Ubiq Security, Inc.
-#
-# Your use of the software is expressly conditioned upon the terms
-# and conditions available at:
-#
-#     https://ubiqsecurity.com/legal
-#
 
 import base64
 import http
@@ -175,22 +159,22 @@ class encryption:
 
         # VER 0, Flags 1 bit means AAD
         hdr = struct.pack('!BBBBH',
-                            0, algorithm.UBIQ_HEADER_V0_FLAG_AAD,
-                            self._algo.id,
-                            len(iv), len(self._key['encrypted']));
-        hdr += iv + self._key['encrypted']               
+                          0, algorithm.UBIQ_HEADER_V0_FLAG_AAD,
+                          self._algo.id,
+                          len(iv), len(self._key['encrypted']));
+        hdr += iv + self._key['encrypted']
         self._enc.authenticate_additional_data(hdr)
 
         # create and return the header for the cipher text
         return (hdr)
 
     def update(self, data):
-        """Encrypt some plain text - 
+        """Encrypt some plain text -
         plain text value has to be contained in a bytes, bytearray or memoryview object.
 
         Any cipher text produced by the operation is returned
         """
-        
+
         if not isinstance(data, (bytes, bytearray, memoryview)):
             raise RuntimeError("Data must be bytes, bytearray, or memoryview objects")
 
@@ -210,6 +194,7 @@ class encryption:
         res = self._enc.finalize()
         if not self._algo.len['tag'] == 0:
             res += self._enc.tag
+
         del self._enc
         return res
 

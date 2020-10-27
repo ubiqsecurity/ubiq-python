@@ -1,20 +1,4 @@
 #!/usr/bin/env python3
-#
-# Copyright 2020 Ubiq Security, Inc., Proprietary and All Rights Reserved.
-#
-# NOTICE:  All information contained herein is, and remains the property
-# of Ubiq Security, Inc. The intellectual and technical concepts contained
-# herein are proprietary to Ubiq Security, Inc. and its suppliers and may be
-# covered by U.S. and Foreign Patents, patents in process, and are
-# protected by trade secret or copyright law. Dissemination of this
-# information or reproduction of this material is strictly forbidden
-# unless prior written permission is obtained from Ubiq Security, Inc.
-#
-# Your use of the software is expressly conditioned upon the terms
-# and conditions available at:
-#
-#     https://ubiqsecurity.com/legal
-#
 
 import configparser
 import os
@@ -27,7 +11,7 @@ class credentialsInfo:
         self.__secret_signing_key = secret_signing_key
         self.__secret_crypto_access_key = secret_crypto_access_key
         self.__host = host
-    
+
     def get_access_key_id(self):
         return self.__access_key_id
     access_key_id=property(get_access_key_id)
@@ -43,7 +27,7 @@ class credentialsInfo:
     def get_host(self):
         return self.__host
     host = property(get_host)
-    
+
     def set(self):
         return (self.__access_key_id != None and self.__secret_signing_key != None and self.__secret_crypto_access_key != None)
 
@@ -56,15 +40,15 @@ class configCredentials(credentialsInfo):
         # Create empty dictionaries for the default and supplied profile
         d = {}
         p = {}
-        
+
         # get the default profile if there is one
         if (config.has_section('default')):
             d = config['default']
-        
+
         # get the supplied profile if there is one
         if (config.has_section(profile)):
             p = config[profile]
-        
+
         # Use given profile if it is available, otherwise use default.
         self.__access_key_id= p.get('access_key_id', d.get('access_key_id'))
         self.__secret_signing_key = p.get('secret_signing_key', d.get('secret_signing_key'))
@@ -83,13 +67,13 @@ class configCredentials(credentialsInfo):
             from os.path import expanduser
             home = expanduser("~")
             config_file = os.path.join(home, ".ubiq", "credentials")
-            
+
         if os.path.exists(config_file):
-                self.load_config_file(config_file, profile)
+            self.load_config_file(config_file, profile)
 
         credentialsInfo.__init__(self, self.__access_key_id , self.__secret_signing_key, self.__secret_crypto_access_key, self.__host)
 
-        if (not self.set()):        
+        if (not self.set()):
             raise RuntimeError("Unable to open config file '{0}' or contains missing values.  ".format(config_file))
 
 
@@ -103,5 +87,5 @@ class credentials(credentialsInfo):
         self.__secret_crypto_access_key = (secret_crypto_access_key, os.getenv('UBIQ_SECRET_CRYPTO_ACCESS_KEY', secret_crypto_access_key)) [secret_crypto_access_key == None]
 
         credentialsInfo.__init__(self, self.__access_key_id,
-                              self.__secret_signing_key,
-                              self.__secret_crypto_access_key, host)
+                                 self.__secret_signing_key,
+                                 self.__secret_crypto_access_key, host)
