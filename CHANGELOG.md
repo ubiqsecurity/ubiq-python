@@ -1,5 +1,7 @@
 # Changelog
 
+## TBD - TBD
+* Change to MIT license
 
 ## 1.0.6 - 2020-09-23
 * Pass client library name and version to server
