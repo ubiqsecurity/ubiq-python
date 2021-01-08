@@ -166,8 +166,8 @@ USAGE
         if DEBUG or TESTRUN:
             raise(e)
         indent = len(program_name) * " "
-        sys.stderr.write(program_name + ": " + repr(e) + "\n")
-        sys.stderr.write(indent + "  for help use --help")
+        sys.stderr.write(program_name + ": {0}\n".format(e))
+        sys.stderr.write(indent + "  For help use --help\n")
         return False
 
 def simple_encryption(infile, outfile, creds):
@@ -265,25 +265,28 @@ def piecewise_decryption(infile, outfile, creds):
 # Main For the application
 if __name__ == "__main__":
 
-    # Parse the args and return the necessary information.  An error during
-    # parsing or testing the input / output files will result in valid_args
-    # being false which will prevent commands from being executed.        
-    valid_args, encryption, simple, infile, outfile, creds = parse_args()
-    
-    # If the arguments were valid, then process the encrypt or decrypt and 
-    # use either the simple or piecewise APIs
-    if valid_args:
-        if simple:
-            if encryption:
-                status = simple_encryption(infile, outfile, creds) 
+    try:
+        # Parse the args and return the necessary information.  An error during
+        # parsing or testing the input / output files will result in valid_args
+        # being false which will prevent commands from being executed.
+        valid_args, encryption, simple, infile, outfile, creds = parse_args()
+
+        # If the arguments were valid, then process the encrypt or decrypt and
+        # use either the simple or piecewise APIs
+        if valid_args:
+            if simple:
+                if encryption:
+                    status = simple_encryption(infile, outfile, creds)
+                else:
+                    status = simple_decryption(infile, outfile, creds)
             else:
-                status = simple_decryption(infile, outfile, creds)
-        else:
-            if encryption:
-                status = piecewise_encryption(infile, outfile, creds) 
-            else:
-                status = piecewise_decryption(infile, outfile, creds)
-        infile.close()
-        outfile.close()
-        
+                if encryption:
+                    status = piecewise_encryption(infile, outfile, creds)
+                else:
+                    status = piecewise_decryption(infile, outfile, creds)
+            infile.close()
+            outfile.close()
+    except Exception as inst:
+        valid_args = False
+
     sys.exit(valid_args == True)
