@@ -29,7 +29,8 @@ class credentialsInfo:
     host = property(get_host)
 
     def set(self):
-        return (self.__access_key_id != None and self.__secret_signing_key != None and self.__secret_crypto_access_key != None)
+        return (self.__access_key_id != None and self.__secret_signing_key != None and self.__secret_crypto_access_key != None and 
+            self.__access_key_id.strip() != "" and self.__secret_signing_key.strip() != "" and self.__secret_crypto_access_key.strip() != "")
 
 class configCredentials(credentialsInfo):
 
@@ -74,7 +75,12 @@ class configCredentials(credentialsInfo):
         credentialsInfo.__init__(self, self.__access_key_id , self.__secret_signing_key, self.__secret_crypto_access_key, self.__host)
 
         if (not self.set()):
-            raise RuntimeError("Unable to open config file '{0}' or contains missing values.  ".format(config_file))
+            if (self.__access_key_id == None or self.__access_key_id.strip() == ""):
+               raise RuntimeError("Unable to open credentials file '{0}' or unable to find 'acess_key_id' value in profile '{1}' or through environment variable for 'UBIQ_ACCESS_KEY_ID'.".format(config_file, profile))
+            elif (self.__secret_signing_key == None or self.__secret_signing_key.strip() == ""):
+               raise RuntimeError("Unable to open credentials file '{0}' or unable to find 'secret_signing_key' value in profile '{1}' or through environment variable for 'UBIQ_SECRET_SIGNING_KEY'.".format(config_file, profile))
+            elif(self.__secret_crypto_access_key == None or self.__secret_crypto_access_key.strip() == ""):
+               raise RuntimeError("Unable to open credentials file '{0}' or unable to find 'secret_crypto_access_key' value in profile '{1}' or through environment variable for 'UBIQ_SECRET_CRYPTO_ACCESS_KEY'.".format(config_file, profile))
 
 
 class credentials(credentialsInfo):
