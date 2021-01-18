@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.0.8 - 2021-01-18
+* Improve error handling with bad credentials files
+
+
 ## 1.0.7 - 2020-10-28
 * Change to MIT license
 
