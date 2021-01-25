@@ -144,7 +144,7 @@ USAGE
                 print ("NOTE: This is only for demonstration purposes and is designed to work on memory")
                 print ("      constrained devices.  Therefore, this sample application will switch to")
                 print ("      the piecewise APIs for files larger than {0} bytes in order to reduce".format(MAX_SIMPLE_SIZE))
-                print ("      excesive resource usages on resource constrained IoT devices")
+                print ("      excessive resource usages on resource constrained IoT devices")
                 simple = False
                 piecewise = True
                
