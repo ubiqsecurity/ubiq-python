@@ -106,7 +106,7 @@ USAGE
         parser.add_argument('-e', '--encrypt', action="store_true", dest="encryption", help="Encrypt the contents of the input file and write the results to output file")
         parser.add_argument('-d', '--decrypt', action="store_true", dest="decryption" ,help="Decrypt the contents of the input file and write the results to output file")
         parser.add_argument('-s', '--simple', action="store_true", dest="simple", help="Use the simple encryption / decryption interfaces")
-        parser.add_argument('-p', '--pieceswise', action="store_true", dest="piecewise", help="Use the piecewise encryption / decryption interfaces")
+        parser.add_argument('-p', '--piecewise', action="store_true", dest="piecewise", help="Use the piecewise encryption / decryption interfaces")
 
         parser.add_argument('-i', '--in', dest="infile", help="Set input file name", required=True)
         parser.add_argument('-o', '--out', dest="outfile", help="Set output file name", required=True)
