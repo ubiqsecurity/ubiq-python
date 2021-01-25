@@ -45,7 +45,7 @@ optional arguments:
   -e, --encrypt         Encrypt the contents of the input file and write the results to output file
   -d, --decrypt         Decrypt the contents of the input file and write the results to output file
   -s, --simple          Use the simple encryption / decryption interfaces
-  -p, --pieceswise      Use the piecewise encryption / decryption interfaces
+  -p, --piecewise       Use the piecewise encryption / decryption interfaces
   -i INFILE, --in INFILE
                         Set input file name
   -o OUTFILE, --out OUTFILE
