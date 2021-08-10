@@ -37,7 +37,7 @@
 
 @author:     Ubiq Security, Inc
 
-@copyright:  2020 Ubiq Security, Inc. All rights reserved.
+@copyright:  2021- Ubiq Security, Inc. All rights reserved.
 
 @contact:    support@ubiqsecurity.com
 @deffield    updated: Updated
@@ -91,7 +91,7 @@ def parse_args(argv=None): # IGNORE:C0111
     program_license = '''%s
 
   Created by Ubiq Security, Inc.
-  Copyright 2020 Ubiq Security, Inc., All rights reserved.
+  Copyright 2021- Ubiq Security, Inc., All rights reserved.
 
   Distributed on an "AS IS" basis without warranties
   or conditions of any kind, either express or implied.
