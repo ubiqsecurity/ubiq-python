@@ -63,6 +63,9 @@ class encryption:
             to make the request.
         """
 
+        if not creds.set():
+            raise RuntimeError("credentials not set")
+
         # If the host does not begin with either http or https
         # insert https://
         self._host = creds.host
