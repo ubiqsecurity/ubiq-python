@@ -76,7 +76,7 @@ class configCredentials(credentialsInfo):
 
         if (not self.set()):
             if (self.__access_key_id == None or self.__access_key_id.strip() == ""):
-               raise RuntimeError("Unable to open credentials file '{0}' or unable to find 'acess_key_id' value in profile '{1}' or through environment variable for 'UBIQ_ACCESS_KEY_ID'.".format(config_file, profile))
+               raise RuntimeError("Unable to open credentials file '{0}' or unable to find 'access_key_id' value in profile '{1}' or through environment variable for 'UBIQ_ACCESS_KEY_ID'.".format(config_file, profile))
             elif (self.__secret_signing_key == None or self.__secret_signing_key.strip() == ""):
                raise RuntimeError("Unable to open credentials file '{0}' or unable to find 'secret_signing_key' value in profile '{1}' or through environment variable for 'UBIQ_SECRET_SIGNING_KEY'.".format(config_file, profile))
             elif(self.__secret_crypto_access_key == None or self.__secret_crypto_access_key.strip() == ""):
