@@ -1,4 +1,6 @@
 # Changelog
+## 1.0.9 - 2021-11-23
+* Added format preserving encryption functionality
 
 ## 1.0.8 - 2021-01-18
 * Improve error handling with bad credentials files
