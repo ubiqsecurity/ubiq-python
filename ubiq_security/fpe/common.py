@@ -32,12 +32,15 @@ def fmtInput(s, pth, ics, ocs):
                 raise RuntimeError('invalid input character')
     return fmt, trm
 
-def encKeyNumber(s, ocs, n, sft):
+def encKeyNumber(s, ocs, n, sft):    
     return ocs[ocs.find(s[0]) + (int(n) << sft)] + s[1:]
 
 def decKeyNumber(s, ocs, sft):
-    n = int(s[0]) >> sft
-    return ocs[ocs.find(s[0]) - (n << sft)] + s[1:], n
+    charBuf = s[0]
+    encoded_value = ocs.find(charBuf)
+    key_num = encoded_value >> sft
+
+    return ocs[encoded_value - (key_num << sft)] + s[1:], key_num
 
 def fmtOutput(fmt, s, pth):
     o = ''
