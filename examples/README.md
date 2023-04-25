@@ -4,8 +4,10 @@
 This sample application will demonstrate how to encrypt and decrypt data using 
 the different APIs.
 
+Provided are two sample applications. One called "ubiq_sample.py" demonstrates how to encrypt and decrypt typical data that you might encounter in your own applications. The other sample application called "ubiq_fpe_sample.py" demonstrates how to encrypt and decrypt using format preserving encryption (FPE).
 
-### Documentation
+
+### Documentation for ubiq_sample.py
 
 See the [Python API docs](https://dev.ubiqsecurity.com/docs/api).
 
@@ -82,3 +84,64 @@ python3 ubiq_sample.py -i /tmp/readme.enc -o /tmp/README.out -d -p -c ./credenti
 ```
 
 
+### Documentation for ubiq_fpe_sample.py
+
+Format preserving encryption (FPE/eFPE) is an optionally available feature. Please contact support@ubiqsecurity.com to add this capability to your account.
+
+## Installation
+
+Make sure to first install the ubiq-security library
+
+```sh
+pip3 install --upgrade ubiq-security
+```
+
+## Credentials file
+
+Edit the credentials file with your account credentials created using the Ubiq dashboard
+
+```sh
+[default]
+ACCESS_KEY_ID = ...  
+SECRET_SIGNING_KEY = ...  
+SECRET_CRYPTO_ACCESS_KEY = ...  
+```
+
+
+
+## View Program Options
+
+From within the examples directory
+
+```
+cd examples
+python3 ubiq_fpe_sample.py -h
+```
+<pre>
+optional arguments:
+  -h, --help            show this help message and exit
+  -V, --version         show program's version number and exit
+  -e ENCRYPTION, --encrypttext ENCRYPTION
+                        Set the field text value to encrypt and will return the encrypted cipher text.
+  -d DECRYPTION, --decrypttext DECRYPTION
+                        Set the cipher text value to decrypt and will return the decrypted text.
+  -c CREDENTIALS, --creds CREDENTIALS
+                        Set the file name with the API credentials (default: ~/.ubiq/credentials)
+  -P PROFILE, --profile PROFILE
+                        Identify the profile within the credentials file (default: default)
+  -n FFS_NAME, --ffsname FFS_NAME
+                        Set the ffs name, for example SSN.
+</pre>
+
+
+#### Demonstrate encrypting a social security number and returning a cipher text
+
+```sh
+python3 ubiq_fpe_sample.py -c ./credentials -n SSN -e 123-45-6789
+```
+
+#### Demonstrate decrypting a social security number and returning the plain text
+
+```sh
+python3 ubiq_fpe_sample.py -c ./credentials -n SSN -d '!!%-%J-n{/#'
+```
