@@ -34,9 +34,12 @@ From within the cloned git repository directory, Install from source with:
 
 ```
 cd ubiq-python
+pip3 install -r requirements.txt
 python3 setup.py install
 ```
 You may need to run the python3 commands above using sudo.
+
+The Ubiq Security libraries are dependent on M2Crypto which has specific requirements as well which varies depending upon your actual environment.  If you encounter problems installing the Ubiq Security libraries, please see [M2Crypto](https://gitlab.com/m2crypto/m2crypto/-/blob/master/INSTALL.rst) for the latest notes and instructions.
 
 
 ### Requirements
@@ -222,7 +225,7 @@ plain_text = "123-45-6789";
 
 credentials = ubiq.ConfigCredentials('./credentials', 'default');
 
-encrypted_data = ubiqfpe.Encrypt({
+encrypted_data = ubiqfpe.Encrypt(
         credentials,
         ffs_name,
         plain_text);
@@ -238,9 +241,9 @@ The decrypted data will be returned.
 ffs_name = "SSN";
 cipher_text = "300-0E-274t";
 
-credentials = new ubiq.ConfigCredentials('./credentials', 'default');
+credentials = ubiq.ConfigCredentials('./credentials', 'default');
 
-decrypted_text = await ubiqfpe.Decrypt({
+decrypted_text = ubiqfpe.Decrypt(
         credentials,
         ffs_name,
         cipher_text);

@@ -1,4 +1,8 @@
 # Changelog
+## 1.0.10 - 2023-04-23
+* Refactor library for ubiq_security_fpe module.  Update README.md
+
+# Changelog
 ## 1.0.9 - 2021-11-23
 * Added format preserving encryption functionality
 

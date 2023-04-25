@@ -4,10 +4,10 @@ import base64
 
 from ..credentials import credentials
 
-from .algo import ff1
 
 from .common import fmtInput, strConvertRadix, decKeyNumber, fmtOutput
 from .common import fetchFFS, fetchKey
+from ubiq_security_fpe import ff1
 
 class Decryption:
     def __del__(self):

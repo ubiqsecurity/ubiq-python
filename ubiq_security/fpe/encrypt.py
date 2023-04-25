@@ -1,10 +1,9 @@
 #/usr/bin/env python3
 
 import base64
+from ubiq_security_fpe import ff1
 
 from ..credentials import credentials
-
-from .algo import ff1
 
 from .common import fmtInput, strConvertRadix, encKeyNumber, fmtOutput
 from .common import fetchFFS, fetchKey

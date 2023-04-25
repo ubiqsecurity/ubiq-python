@@ -7,8 +7,8 @@ import requests
 import urllib
 
 from ..auth import http_auth
+from ubiq_security_fpe import ffx
 
-from .algo import ffx
 
 import cryptography.hazmat.primitives as crypto
 from cryptography.hazmat.backends import default_backend as crypto_backend
