@@ -136,6 +136,52 @@ def fetchKey(host, papi, sapi, srsa, ffs, n = -1):
     return fetchKey.cache[papi][ffs][n]
 fetchKey.cache = {}
 
+def allKeysToNInCache(papi, ffs, n):
+    present = True
+    for i in range(0,n+1):
+        present = present and (i in fetchKey.cache[papi][ffs])
+    return present
+
+def fetchAllKeys(host, papi, sapi, srsa, ffs):
+    url=f"{host}fpe/def_keys?ffs_name={ffs}&papi={papi}"
+    resp = requests.get(url, auth=http_auth(papi, sapi))
+
+    if resp.status_code != http.HTTPStatus.OK:
+        raise urllib.error.HTTPError(
+            url, resp.status_code,
+            http.HTTPStatus(resp.status_code).phrase,
+            resp.headers, resp.content)
+    keys = json.loads(resp.content.decode())
+
+    if not papi in fetchKey.cache:
+        fetchKey.cache[papi] = {}
+    if not ffs in fetchKey.cache[papi]:
+        fetchKey.cache[papi][ffs] = {}
+
+    prvkey = crypto.serialization.load_pem_private_key(
+        keys[ffs]['encrypted_private_key'].encode(), srsa.encode(),
+        crypto_backend())
+    
+    for i, enc_key in enumerate(keys[ffs]['keys']):
+        key = {
+            'encrypted_private_key': keys[ffs]['encrypted_private_key'],
+            'wrapped_data_key': enc_key
+        }
+        key['unwrapped_data_key'] = prvkey.decrypt(
+            base64.b64decode(key['wrapped_data_key']),
+            crypto.asymmetric.padding.OAEP(
+                mgf=crypto.asymmetric.padding.MGF1(
+                    algorithm=crypto.hashes.SHA1()),
+                algorithm=crypto.hashes.SHA1(),
+                label=None))
+        fetchKey.cache[papi][ffs][i] = key
+
+def fetchCurrentKeys(host, papi, sapi, srsa, ffs, n):
+    if not allKeysToNInCache(papi, ffs, n):
+        fetchAllKeys(host, papi, sapi, srsa, ffs)
+
+    return {k: fetchKey.cache[papi][ffs][k] for k in range(0,n+1)}
+
 def flushKey(papi = None, ffs = None, n = None):
     if papi == None:
         fetchKey.cache = {}
