@@ -1,8 +1,11 @@
 #!/usr/bin/env python3
 
+import atexit
 import configparser
 import os
 from . import UBIQ_HOST
+from .configuration import ubiqConfiguration
+from .events import events, eventsProcessor
 
 class credentialsInfo:
 
@@ -81,6 +84,16 @@ class configCredentials(credentialsInfo):
                raise RuntimeError("Unable to open credentials file '{0}' or unable to find 'secret_signing_key' value in profile '{1}' or through environment variable for 'UBIQ_SECRET_SIGNING_KEY'.".format(config_file, profile))
             elif(self.__secret_crypto_access_key == None or self.__secret_crypto_access_key.strip() == ""):
                raise RuntimeError("Unable to open credentials file '{0}' or unable to find 'secret_crypto_access_key' value in profile '{1}' or through environment variable for 'UBIQ_SECRET_CRYPTO_ACCESS_KEY'.".format(config_file, profile))
+        
+        # Event Tracking
+        self.__configuration = ubiqConfiguration()
+        self.__events = events(self, self.__configuration)
+        self.__eventsProcessor = eventsProcessor(self.__configuration, self.__events)
+        self.__eventsProcessor.start()
+
+    # Forward events to event queue
+    def add_event(self, dataset_name, dataset_group_name, billing_action, dataset_type, key_number, count):
+        return self.__events.add_event(self.__access_key_id, dataset_name, dataset_group_name, billing_action, dataset_type, key_number, count)
 
 
 class credentials(credentialsInfo):
@@ -95,3 +108,13 @@ class credentials(credentialsInfo):
         credentialsInfo.__init__(self, self.__access_key_id,
                                  self.__secret_signing_key,
                                  self.__secret_crypto_access_key, host)
+        
+        # Event Tracking
+        self.__configuration = ubiqConfiguration()
+        self.__events = events(self, self.__configuration)
+        self.__eventsProcessor = eventsProcessor(self.__configuration, self.__events)
+        self.__eventsProcessor.start()
+    
+    # Forward events to event queue
+    def add_event(self, dataset_name, dataset_group_name, billing_action, dataset_type, key_number, count):
+        return self.__events.add_event(self.__access_key_id, dataset_name, dataset_group_name, billing_action, dataset_type, key_number, count)

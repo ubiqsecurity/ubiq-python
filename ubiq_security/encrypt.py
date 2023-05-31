@@ -34,10 +34,11 @@ class encryption:
             if self._key['uses'] < self._key['max_uses']:
                 requests.patch(
                     self._endpoint_base() +
-                    '/encryption/key/' + self._key['id'] + '/' + self._key['session'],
+                    '/encryption/key/' +
+                    self._key['id'] + '/' + self._key['session'],
                     data=json.dumps(
-                        { "requested": self._key['max_uses'],
-                          "actual": self._key['uses'] }).encode('utf-8'),
+                        {"requested": self._key['max_uses'],
+                         "actual": self._key['uses']}).encode('utf-8'),
                     auth=http_auth(self._papi, self._sapi))
         except:
             pass
@@ -86,7 +87,7 @@ class encryption:
 
         response = requests.post(
             url,
-            data=json.dumps({ 'uses': uses }).encode('utf-8'),
+            data=json.dumps({'uses': uses}).encode('utf-8'),
             auth=http_auth(self._papi, self._sapi))
 
         if response.status_code != http.HTTPStatus.CREATED:
@@ -110,7 +111,8 @@ class encryption:
         # the function raises a ValueError which is propagated up.
         #
         prvkey = crypto.serialization.load_pem_private_key(
-            content['encrypted_private_key'].encode('utf-8'), creds.secret_crypto_access_key.encode('utf-8'),
+            content['encrypted_private_key'].encode(
+                'utf-8'), creds.secret_crypto_access_key.encode('utf-8'),
             crypto_backend())
 
         self._key = {}
@@ -164,7 +166,7 @@ class encryption:
         hdr = struct.pack('!BBBBH',
                           0, algorithm.UBIQ_HEADER_V0_FLAG_AAD,
                           self._algo.id,
-                          len(iv), len(self._key['encrypted']));
+                          len(iv), len(self._key['encrypted']))
         hdr += iv + self._key['encrypted']
         self._enc.authenticate_additional_data(hdr)
 
@@ -179,7 +181,8 @@ class encryption:
         """
 
         if not isinstance(data, (bytes, bytearray, memoryview)):
-            raise RuntimeError("Data must be bytes, bytearray, or memoryview objects")
+            raise RuntimeError(
+                "Data must be bytes, bytearray, or memoryview objects")
 
         return self._enc.update(data)
 
@@ -200,6 +203,7 @@ class encryption:
 
         del self._enc
         return res
+
 
 def encrypt(creds, data):
     """Simple encryption interface
@@ -222,4 +226,6 @@ def encrypt(creds, data):
         the entire cipher text that can be passed to the decrypt function
     """
     enc = encryption(creds, 1)
+    creds.add_event(dataset_name="", dataset_group_name="", billing_action="encrypt",
+                    dataset_type="unstructured", key_number=0, count=1)
     return enc.begin() + enc.update(data) + enc.end()

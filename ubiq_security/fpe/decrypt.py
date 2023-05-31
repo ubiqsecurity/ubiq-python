@@ -17,6 +17,8 @@ class Decryption:
     def __init__(self, creds, ffs):
         if not creds.set():
             raise RuntimeError("credentials not set")
+        
+        self._creds = creds
 
         # If the host does not begin with either http or https
         # insert https://
@@ -55,6 +57,8 @@ class Decryption:
 
         pt = self._ctx.Decrypt(ct, twk)
 
+        self._creds.add_event(dataset_name=self._ffs['name'], dataset_group_name="", billing_action="decrypt",
+            dataset_type="structured", key_number=n, count=1)
         return fmtOutput(fmt, pt, pth)
 
 def Decrypt(creds, ffs, ct, twk = None):

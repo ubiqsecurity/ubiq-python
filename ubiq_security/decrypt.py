@@ -319,4 +319,6 @@ def decrypt(creds, data):
         the entire cipher text that can be passed to the decrypt function
     """
     dec = decryption(creds)
+    creds.add_event(dataset_name="", dataset_group_name="", billing_action="decrypt",
+                dataset_type="unstructured", key_number=0, count=1)
     return dec.begin() + dec.update(data) + dec.end()

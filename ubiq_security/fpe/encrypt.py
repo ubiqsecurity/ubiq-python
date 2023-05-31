@@ -16,6 +16,8 @@ class Encryption:
     def __init__(self, creds, ffs):
         if not creds.set():
             raise RuntimeError("credentials not set")
+        
+        self._creds = creds
 
         # If the host does not begin with either http or https
         # insert https://
@@ -57,6 +59,10 @@ class Encryption:
         ct = encKeyNumber(ct, ocs,
                           self._key['key_number'],
                           self._ffs['msb_encoding_bits'])
+        
+        self._creds.add_event(dataset_name=self._ffs['name'], dataset_group_name="", billing_action="encrypt",
+                dataset_type="structured", key_number=self._key['key_number'], count=1)
+        
         return fmtOutput(fmt, ct, pth)
 
 def Encrypt(creds, ffs, pt, twk = None):
