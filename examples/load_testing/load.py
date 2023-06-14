@@ -33,6 +33,29 @@
   Sample application for testing the runtime of encrypting and decrypting
   using various dataset definitions.
 
+  Expects the API key has access to structured dataset definitions:
+  FULL_NAME
+    input abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ'-.
+    output abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!"#$%&'()*+,-./:;<=>?@[\]^_`{|}~
+    passthrough ' ' (single space)
+    min 5 max 255
+  EMAIL
+    input abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789+-
+    output abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789! "#$%&'()*+,-/:;<=>?[\]^_`{|}~
+    passthrough @.
+    min 6 max 255
+  PHONE
+    input 0123456789
+    output !"#$%&'()*+,./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\]^_`abcdefghijklmnopqrstuvwxyz{|}~
+    passthrough -
+    min 7 max 255
+  SSN 
+    input 0123456789 
+    output 0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz 
+    passthrough -
+    min 11 max 255
+
+
 @author:     Ubiq Security, Inc
 
 @copyright:  2023- Ubiq Security, Inc. All rights reserved.
@@ -96,8 +119,8 @@ USAGE
         parser.add_argument('-d', '--decrypt', action="store_true", dest="decryption" ,help="Test decryption")
         parser.add_argument('-v', '--verbose', action="store_true", dest="verbose" ,help="Verbose output")
 
-        parser.add_argument('-ef', '--encryptfile', dest="filename", help="Filename of CSV with data to use for load testing", required=True)
-        parser.add_argument('-df', '--decryptfile', dest="encrypt_file", help="Encrypted file to decrypt (Not passing will instead require encrypting to decrypt)")
+        parser.add_argument('-ef', '--encryptfile', dest="encrypt_file", help="Filename of CSV with data to use for load testing")
+        parser.add_argument('-df', '--decryptfile', dest="decrypt_file", help="Encrypted file to decrypt (Not passing will instead require encrypting to decrypt)")
         parser.add_argument('-i', '--iterations', dest="iterations", help="Times to run the whole data", default=20)
 
         args = parser.parse_args()
@@ -108,13 +131,15 @@ USAGE
         verbose = args.verbose
         iter = int(args.iterations)
         encrypt_file = args.encrypt_file
+        decrypt_file = args.decrypt_file
 
         encfile = None
+        decfile = None
 
-        try:
-            infile = open(args.filename, 'r')
-        except Exception as e:
-            raise Exception(f'Unable to open file {args.filename} for reading. Check path or access rights.')
+        if enc and not encrypt_file:
+            raise Exception('Encryption requires data to encrypt. Please provide a filename with -ef')
+        if dec and not (enc or decrypt_file):
+            raise Exception('Decryption test requires either encryption or encrypted file to be provided.')
         
         if encrypt_file:
             try:
@@ -122,10 +147,14 @@ USAGE
             except Exception as e:
                 raise Exception(f'Unable to open file {encrypt_file} for reading. Check path or access rights.')
         
-        if args.decryption and not (args.encryption or encrypt_file):
-            raise Exception('Decryption test requires either encryption or encrypted file to be provided.')
+        if decrypt_file:
+            try:
+                decfile = open(decrypt_file, 'r')
+            except Exception as e:
+                raise Exception(f'Unable to open file {decrypt_file} for reading. Check path or access rights.')
+        
 
-        return True, infile, iter, enc, dec, encfile, creds, verbose
+        return True, iter, enc, encfile, dec, decfile, creds, verbose
     except KeyboardInterrupt:
         ### handle keyboard interrupt ###
         return False
@@ -137,16 +166,9 @@ USAGE
         sys.stderr.write(indent + "  For help use --help\n")
         return False
 
-def run_test(file, iterations, encrypt, decrypt, encfile, credentials, verbose):
-    full_doc = file.read()
-    doc_rows = []
+def run_test(iterations, encrypt, encfile, decrypt, decfile, credentials, verbose):
+    
     transformed_rows = []
-    first_pass=True
-
-    lines = full_doc.splitlines(True)
-    reader = csv.DictReader(lines)
-    for row in reader: 
-        doc_rows.append(row)
 
     total_enc = 0
     total_dec = 0
@@ -154,7 +176,15 @@ def run_test(file, iterations, encrypt, decrypt, encfile, credentials, verbose):
     # Encrypt specific data
     if encrypt:
         if verbose:
-            print('Encrypting line by line')
+            print(f'Encrypting {encfile.name}')
+        first_pass=True
+        full_doc = encfile.read()
+        doc_rows = []
+        lines = full_doc.splitlines(True)
+        reader = csv.DictReader(lines)
+        for row in reader: 
+            doc_rows.append(row)
+
 
         start_enc = time.time()
         for i in range(iterations):
@@ -184,16 +214,18 @@ def run_test(file, iterations, encrypt, decrypt, encfile, credentials, verbose):
         print(f"took {format_enc_time}s to encrypt {str(total_enc)} times ({format_avg_enc_time}ms avg)\n")
 
     if decrypt:
-        if encfile:
-            enc_doc = encfile.read()
+        if decfile:
+            if verbose:
+                print(f'Decrypting {decfile.name}')
+            dec_doc = decfile.read()
             transformed_rows = []
-            lines = enc_doc.splitlines(True)
+            lines = dec_doc.splitlines(True)
             reader = csv.DictReader(lines)
             for row in reader: 
                 transformed_rows.append(row)
-
-        if verbose:
-            print('Decrypting line by line')
+        else:
+            if verbose:
+                print('Decrypting using previously encrypted data')
 
         start_dec = time.time()
         for i in range(iterations):
@@ -219,12 +251,8 @@ def run_test(file, iterations, encrypt, decrypt, encfile, credentials, verbose):
 
 if __name__ == "__main__":
     try:
-        valid_args, infile, iterations, encrypt, decrypt, encfile, creds, verbose = parse_args()
-        and_info = ''
-        if encfile:
-            and_info = f'and {encfile.name}'
-        print(f'Running using {infile.name} {and_info}')
-        run_test(infile, iterations, encrypt, decrypt, encfile, creds, verbose)
+        valid_args, iterations, encrypt, encfile, decrypt, decfile, creds, verbose = parse_args()
+        run_test(iterations, encrypt, encfile, decrypt, decfile, creds, verbose)
     except Exception as e:
         valid_args = False
         traceback.print_exc(e)
