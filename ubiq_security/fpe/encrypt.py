@@ -67,11 +67,10 @@ class Encryption:
         return fmtOutput(fmt, ct, pth)
     
     def CipherForSearch(self, pt, twk=None):
-        current_key_num = int(self._key['key_number'])
         keys = fetchCurrentKeys(self._host,
                             self._papi, self._sapi,
                             self._srsa,
-                            self._ffs['name'], current_key_num)
+                            self._ffs['name'])
         
         pth = self._ffs['passthrough']
         ics = self._ffs['input_character_set']
@@ -81,9 +80,9 @@ class Encryption:
 
 
         searchCipher = []
-        for i in range(0, current_key_num+1):
+        for _, (key_num, key) in enumerate(keys.items()):
             algo = ff1.Context(
-                keys[i]['unwrapped_data_key'],
+                key['unwrapped_data_key'],
                 base64.b64decode(self._ffs['tweak']),
                 self._ffs['tweak_min_len'], self._ffs['tweak_max_len'],
                 len(ics),
@@ -91,7 +90,7 @@ class Encryption:
             ct = algo.Encrypt(pt, twk)
             ct = strConvertRadix(ct, ics, ocs)
             ct = encKeyNumber(ct, ocs,
-                          i,
+                          key_num,
                           self._ffs['msb_encoding_bits'])
             searchCipher.append(fmtOutput(fmt, ct, pth))
 

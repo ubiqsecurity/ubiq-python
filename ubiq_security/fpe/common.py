@@ -163,6 +163,9 @@ def fetchAllKeys(host, papi, sapi, srsa, ffs):
         crypto_backend())
     
     for i, enc_key in enumerate(keys[ffs]['keys']):
+        if i in fetchKey.cache[papi][ffs]:
+            continue
+
         key = {
             'encrypted_private_key': keys[ffs]['encrypted_private_key'],
             'wrapped_data_key': enc_key
@@ -176,11 +179,10 @@ def fetchAllKeys(host, papi, sapi, srsa, ffs):
                 label=None))
         fetchKey.cache[papi][ffs][i] = key
 
-def fetchCurrentKeys(host, papi, sapi, srsa, ffs, n):
-    if not allKeysToNInCache(papi, ffs, n):
-        fetchAllKeys(host, papi, sapi, srsa, ffs)
+def fetchCurrentKeys(host, papi, sapi, srsa, ffs,):
+    fetchAllKeys(host, papi, sapi, srsa, ffs)
 
-    return {k: fetchKey.cache[papi][ffs][k] for k in range(0,n+1)}
+    return {key_num: key for key_num, key in sorted(fetchKey.cache[papi][ffs].items()) if key_num not in [-1]}
 
 def flushKey(papi = None, ffs = None, n = None):
     if papi == None:
