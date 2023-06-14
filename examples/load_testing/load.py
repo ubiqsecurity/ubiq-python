@@ -42,6 +42,7 @@
 '''
 
 import csv
+import traceback
 import ubiq_security as ubiq
 import ubiq_security.fpe as ubiqfpe
 import time
@@ -95,9 +96,9 @@ USAGE
         parser.add_argument('-d', '--decrypt', action="store_true", dest="decryption" ,help="Test decryption")
         parser.add_argument('-v', '--verbose', action="store_true", dest="verbose" ,help="Verbose output")
 
-        parser.add_argument('-f', '--filename', dest="filename", help="Filename of CSV with data to use for load testing", default='MOCK_DATA.csv')
-        parser.add_argument('-i', '--iterations', dest="iterations", help="Times to run the whole data", default=20, required=False)
-
+        parser.add_argument('-ef', '--encryptfile', dest="filename", help="Filename of CSV with data to use for load testing", required=True)
+        parser.add_argument('-df', '--decryptfile', dest="encrypt_file", help="Encrypted file to decrypt (Not passing will instead require encrypting to decrypt)")
+        parser.add_argument('-i', '--iterations', dest="iterations", help="Times to run the whole data", default=20)
 
         args = parser.parse_args()
 
@@ -106,17 +107,25 @@ USAGE
         dec = args.decryption
         verbose = args.verbose
         iter = int(args.iterations)
+        encrypt_file = args.encrypt_file
 
+        encfile = None
 
         try:
             infile = open(args.filename, 'r')
         except Exception as e:
             raise Exception(f'Unable to open file {args.filename} for reading. Check path or access rights.')
         
-        if args.decryption and not args.encryption:
-            raise Exception('Decryption test without encryption not supported yet. Need encrypted data to test.')
+        if encrypt_file:
+            try:
+                encfile = open(encrypt_file, 'r')
+            except Exception as e:
+                raise Exception(f'Unable to open file {encrypt_file} for reading. Check path or access rights.')
+        
+        if args.decryption and not (args.encryption or encrypt_file):
+            raise Exception('Decryption test requires either encryption or encrypted file to be provided.')
 
-        return True, infile, iter, enc, dec, creds, verbose
+        return True, infile, iter, enc, dec, encfile, creds, verbose
     except KeyboardInterrupt:
         ### handle keyboard interrupt ###
         return False
@@ -128,7 +137,7 @@ USAGE
         sys.stderr.write(indent + "  For help use --help\n")
         return False
 
-def run_test(file, iterations, encrypt, decrypt, credentials, verbose):
+def run_test(file, iterations, encrypt, decrypt, encfile, credentials, verbose):
     full_doc = file.read()
     doc_rows = []
     transformed_rows = []
@@ -175,6 +184,14 @@ def run_test(file, iterations, encrypt, decrypt, credentials, verbose):
         print(f"took {format_enc_time}s to encrypt {str(total_enc)} times ({format_avg_enc_time}ms avg)\n")
 
     if decrypt:
+        if encfile:
+            enc_doc = encfile.read()
+            transformed_rows = []
+            lines = enc_doc.splitlines(True)
+            reader = csv.DictReader(lines)
+            for row in reader: 
+                transformed_rows.append(row)
+
         if verbose:
             print('Decrypting line by line')
 
@@ -202,10 +219,13 @@ def run_test(file, iterations, encrypt, decrypt, credentials, verbose):
 
 if __name__ == "__main__":
     try:
-        valid_args, infile, iterations, encrypt, decrypt, creds, verbose = parse_args()
-        print(f'Running using {infile.name}')
-        run_test(infile, iterations, encrypt, decrypt, creds, verbose)
+        valid_args, infile, iterations, encrypt, decrypt, encfile, creds, verbose = parse_args()
+        and_info = ''
+        if encfile:
+            and_info = f'and {encfile.name}'
+        print(f'Running using {infile.name} {and_info}')
+        run_test(infile, iterations, encrypt, decrypt, encfile, creds, verbose)
     except Exception as e:
         valid_args = False
-
+        traceback.print_exc(e)
     sys.exit(valid_args == True)
