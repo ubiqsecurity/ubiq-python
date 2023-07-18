@@ -1,5 +1,9 @@
 # Changelog
 
+## 2.1.1 - 2023-07-18
+* Bugfix - FPE Library reference
+* Pypi Release
+
 ## 2.1.0 - 2023-06-08
 * Add EncryptForSearch to standard encryption
 * Add automated performance testing

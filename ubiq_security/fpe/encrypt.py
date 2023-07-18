@@ -1,7 +1,7 @@
 #/usr/bin/env python3
 
 import base64
-from .algo import ff1
+from ubiq_security_fpe import ff1
 
 from ..credentials import credentials
 
