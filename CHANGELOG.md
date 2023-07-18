@@ -1,7 +1,8 @@
 # Changelog
 
-## 2.0.0 - 2023-06-08
+## 2.1.0 - 2023-06-08
 * Add EncryptForSearch to standard encryption
+* Add automated performance testing
 
 ## 1.0.10 - 2023-04-23
 * Refactor library for ubiq_security_fpe module.  Update README.md
