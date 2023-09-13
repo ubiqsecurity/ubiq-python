@@ -5,8 +5,9 @@ import threading
 import atexit 
 
 from .auth import http_auth
+from .version import VERSION
 
-def getKey(api_key, dataset_name, dataset_group_name, billing_action, dataset_type, key_number):
+def get_key(api_key, dataset_name, dataset_group_name, billing_action, dataset_type, key_number):
     return "api_key='%s' datasets='%s' billing_action='%s' dataset_groups='%s' key_number='%s' dataset_type='%s'" % (api_key, dataset_name, billing_action, dataset_group_name, key_number, dataset_type)
 
 
@@ -19,20 +20,29 @@ class event:
         self.dataset_type = dataset_type
         self.key_number = key_number
         self.count = count
+        self.first_call_timestamp = time.datetime.datetime.utcnow().isoformat()
+        self.last_call_timestamp = time.datetime.datetime.utcnow().isoformat()
 
     def increment_count(self, val):
         self.count = self.count + val
+        self.last_call_timestamp = time.datetime.datetime.utcnow().isoformat()
         return self.count
 
     def serialize(self):
         return {
-            'api_key': self.api_key,
-            'dataset_name': self.dataset_name,
-            'dataset_group_name': self.dataset_group_name,
-            'billing_action': self.billing_action,
+            'datasets': self.dataset_name,
+            'dataset_groups': self.dataset_group_name,
             'dataset_type': self.dataset_type,
+            'api_key': self.api_key,
+            'count': self.count,
             'key_number': self.key_number,
-            'count': self.count
+            'action': self.billing_action,
+            'product': 'ubiq-python',
+            'product_version': VERSION,
+            'user-agent': 'ubiq-python/' + VERSION,
+            'api_version': 'V3',
+            'last_call_timestamp': self.last_call_timestamp,
+            'first_call_timestamp': self.first_call_timestamp
         }
 
 
@@ -54,7 +64,7 @@ class events:
     def add_event(self, api_key, dataset_name, dataset_group_name, billing_action, dataset_type, key_number, count):
         self.lock.acquire()
         try:
-            key = getKey(api_key, dataset_name, dataset_group_name,
+            key = get_key(api_key, dataset_name, dataset_group_name,
                          billing_action, dataset_type, key_number)
             current_count = self.events_dict.get(key, event(api_key, dataset_name, dataset_group_name,
                                                            billing_action, dataset_type, key_number, 0))
