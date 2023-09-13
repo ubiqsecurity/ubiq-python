@@ -1,5 +1,8 @@
 # Changelog
 
+## 2.1.2 - 2023-09-12
+* Updated event reporting format
+
 ## 2.1.1 - 2023-07-18
 * Bugfix - FPE Library reference
 * Pypi Release
