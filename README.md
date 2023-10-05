@@ -253,7 +253,18 @@ print('DECRYPTED decrypted_text= ' + decrypted_text + '\n');
 
 Additional information on how to use these FFS models in your own applications is available by contacting Ubiq.
 
+### Encrypt For Search
 
+The same plaintext data will result in different cipher text when encrypted using different data keys. The Encrypt For Search function will encrypt the same plain text for a given dataset using all previously used data keys. This will provide a collection of cipher text values that can be used when searching for existing records where the data was encrypted and the specific version of the data key is not known in advance.
+
+```python
+
+credentials = ubiq.ConfigCredentials('./credentials', 'default');
+ffs_name = "SSN";
+plain_text = "123-45-6789";
+
+ct_arr = ubiqfpe.EncryptForSearch(credentials, ffs_name, plain_text)
+```
 
 
 [dashboard]:https://dashboard.ubiqsecurity.com/
