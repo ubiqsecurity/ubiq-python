@@ -1,6 +1,7 @@
 import requests
 import json
 import time
+from datetime import datetime, timezone
 import threading
 import atexit 
 
@@ -20,12 +21,12 @@ class event:
         self.dataset_type = dataset_type
         self.key_number = key_number
         self.count = count
-        self.first_call_timestamp = time.datetime.datetime.utcnow().isoformat()
-        self.last_call_timestamp = time.datetime.datetime.utcnow().isoformat()
+        self.first_call_timestamp = datetime.now(timezone.utc).isoformat()
+        self.last_call_timestamp = datetime.now(timezone.utc).isoformat()
 
     def increment_count(self, val):
         self.count = self.count + val
-        self.last_call_timestamp = time.datetime.datetime.utcnow().isoformat()
+        self.last_call_timestamp = datetime.now(timezone.utc).isoformat()
         return self.count
 
     def serialize(self):

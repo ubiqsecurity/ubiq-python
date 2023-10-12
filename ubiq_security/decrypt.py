@@ -14,6 +14,7 @@ from cryptography.hazmat.backends import default_backend as crypto_backend
 from . import UBIQ_HOST
 from .auth import http_auth
 from .algorithm import algorithm
+from .common import fetchDecryptKey
 
 class decryption:
     def _endpoint_base(self):
@@ -28,14 +29,6 @@ class decryption:
         used by the previous decryption.
         """
         if hasattr(self, '_key'):
-            if self._key['uses'] > 0:
-                requests.patch(
-                    self._endpoint_base() +
-                    '/decryption/key/' + self._key['finger_print'] + '/' + self._key['session'],
-                    data=json.dumps(
-                        { 'uses': self._key['uses'] }).encode('utf-8'),
-                    auth=http_auth(self._papi, self._sapi))
-
             del self._key
 
     def __del__(self):
@@ -188,49 +181,7 @@ class decryption:
                     # reused--see below. if not, then request a decryption
                     # of the key in the current header from the server
                     if not hasattr(self, '_key'):
-                        url = self._endpoint_base() + '/decryption/key'
-                        response = requests.post(
-                            url,
-                            data=json.dumps(
-                                {
-                                    'encrypted_data_key': base64.b64encode(
-                                        key).decode('utf-8')
-                                }).encode('utf-8'),
-                            auth=http_auth(self._papi, self._sapi))
-                        if response.status_code != http.HTTPStatus.OK:
-                            raise urllib.error.HTTPError(
-                                url, response.status_code,
-                                http.HTTPStatus(response.status_code).phrase,
-                                response.headers, response.content)
-
-                        content = json.loads(response.content.decode('utf-8'))
-
-                        self._key = {}
-
-                        self._key['algo']      = algorithm(alg)
-                        # the client's id for recognizing key reuse
-                        self._key['client_id'] = client_id
-                        # the server's id for sending updates
-                        self._key['finger_print'] = content['key_fingerprint']
-                        self._key['session'] = content['encryption_session']
-
-                        # decrypt the client's private key (sent
-                        # by the server)
-                        prvkey = crypto.serialization.load_pem_private_key(
-                            content['encrypted_private_key'].encode('utf-8'),
-                            self._srsa.encode('utf-8'),
-                            crypto_backend())
-                        # use the private key to decrypt the data key
-                        self._key['raw'] = prvkey.decrypt(
-                            base64.b64decode(content['wrapped_data_key']),
-                            crypto.asymmetric.padding.OAEP(
-                                mgf=crypto.asymmetric.padding.MGF1(
-                                    algorithm=crypto.hashes.SHA1()),
-                                algorithm=crypto.hashes.SHA1(),
-                                label=None))
-
-                        # this key hasn't been used (yet)
-                        self._key['uses'] = 0
+                        self._key = fetchDecryptKey(self._host, self._papi, self._sapi, self._srsa, key, client_id, alg)
 
                     # if the key object exists, create a new decryptor
                     # with the initialization vector from the header and
