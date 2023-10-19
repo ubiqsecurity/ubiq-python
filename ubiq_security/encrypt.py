@@ -75,6 +75,7 @@ class encryption:
 
         self._papi = creds.access_key_id
         self._sapi = creds.secret_signing_key
+        self._creds = creds
 
         #
         # request a new encryption key from the server. if the request
@@ -158,6 +159,8 @@ class encryption:
         if self._key['uses'] >= self._key['max_uses']:
             raise RuntimeError("maximum key uses exceeded")
         self._key['uses'] += 1
+        self._creds.add_event(dataset_name="", dataset_group_name="", billing_action="encrypt",
+            dataset_type="unstructured", key_number=0, count=1)
 
         # create a new encryption context
         self._enc, iv = self._algo.encryptor(self._key['raw'])
@@ -226,6 +229,4 @@ def encrypt(creds, data):
         the entire cipher text that can be passed to the decrypt function
     """
     enc = encryption(creds, 1)
-    creds.add_event(dataset_name="", dataset_group_name="", billing_action="encrypt",
-                    dataset_type="unstructured", key_number=0, count=1)
     return enc.begin() + enc.update(data) + enc.end()

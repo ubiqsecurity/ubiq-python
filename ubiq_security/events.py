@@ -4,6 +4,7 @@ import time
 from datetime import datetime, timezone
 import threading
 import atexit 
+import uuid
 
 from .auth import http_auth
 from .version import VERSION
@@ -43,7 +44,11 @@ class event:
             'user-agent': 'ubiq-python/' + VERSION,
             'api_version': 'V3',
             'last_call_timestamp': self.last_call_timestamp,
-            'first_call_timestamp': self.first_call_timestamp
+            'first_call_timestamp': self.first_call_timestamp,
+            'user_defined': {
+                'session_id': self.session_id,
+                'processor_id': self.processor_id
+            }
         }
 
 
@@ -61,6 +66,9 @@ class events:
 
         self._papi = creds.access_key_id
         self._sapi = creds.secret_signing_key
+        # Create identifier for rounds of usage submission
+        self.session_id = str(uuid.uuid4())
+        self.processor_id = str(uuid.uuid4())
 
     def add_event(self, api_key, dataset_name, dataset_group_name, billing_action, dataset_type, key_number, count):
         self.lock.acquire()
@@ -93,6 +101,8 @@ class events:
             usage = json.dumps({'usage': self.list_events()})
             self.events_dict = {}
             self.count = 0
+            # Generate a new unique session ID
+            self.session_id = str(uuid.uuid4())
         finally: 
             self.lock.release()
 
