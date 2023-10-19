@@ -67,6 +67,7 @@ class decryption:
         self._papi = creds.access_key_id
         self._sapi = creds.secret_signing_key
         self._srsa = creds.secret_crypto_access_key
+        self._creds = creds
 
     def begin(self):
         """Begin the decryption process
@@ -192,6 +193,8 @@ class decryption:
                         self._key['dec'] = self._key['algo'].decryptor(
                             self._key['raw'], vec)
                         self._key['uses'] += 1
+                        self._creds.add_event(dataset_name="", dataset_group_name="", billing_action="decrypt",
+                            dataset_type="unstructured", key_number=0, count=1)
 
                         if (flags & algorithm.UBIQ_HEADER_V0_FLAG_AAD):
                             self._key['dec'].authenticate_additional_data(aad)
@@ -270,6 +273,4 @@ def decrypt(creds, data):
         the entire cipher text that can be passed to the decrypt function
     """
     dec = decryption(creds)
-    creds.add_event(dataset_name="", dataset_group_name="", billing_action="decrypt",
-                dataset_type="unstructured", key_number=0, count=1)
     return dec.begin() + dec.update(data) + dec.end()

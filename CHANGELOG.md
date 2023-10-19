@@ -1,4 +1,7 @@
 # Changelog
+## 2.1.3 - 2023-10-12
+* Support for Piecewise event reporting
+* Add caching for unstructured decrypt keys and flag to enable or disable
 
 ## 2.1.2 - 2023-09-12
 * Updated event reporting format
