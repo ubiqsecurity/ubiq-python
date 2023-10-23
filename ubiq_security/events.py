@@ -13,6 +13,7 @@ def get_key(api_key, dataset_name, dataset_group_name, billing_action, dataset_t
     return "api_key='%s' datasets='%s' billing_action='%s' dataset_groups='%s' key_number='%s' dataset_type='%s'" % (api_key, dataset_name, billing_action, dataset_group_name, key_number, dataset_type)
 
 
+
 class event:
     def __init__(self, api_key, dataset_name, dataset_group_name, billing_action, dataset_type, key_number, count):
         self.api_key = api_key
@@ -30,7 +31,7 @@ class event:
         self.last_call_timestamp = datetime.now(timezone.utc).isoformat()
         return self.count
 
-    def serialize(self):
+    def serialize(self, session_id, processor_id):
         return {
             'datasets': self.dataset_name,
             'dataset_groups': self.dataset_group_name,
@@ -46,8 +47,8 @@ class event:
             'last_call_timestamp': self.last_call_timestamp,
             'first_call_timestamp': self.first_call_timestamp,
             'user_defined': {
-                'session_id': self.session_id,
-                'processor_id': self.processor_id
+                'session_id': session_id,
+                'processor_id': processor_id
             }
         }
 
@@ -80,29 +81,36 @@ class events:
             current_count.increment_count(count)
             self.events_dict.update({key: current_count})
             self.count += count
+        except Exception as e:
+            self.handle_exception(e)
         finally:
             self.lock.release()
 
     def list_events(self):
-        return list(map(lambda e: e.serialize(), self.events_dict.values()))
+        return list(map(lambda e: e.serialize(self.session_id, self.processor_id), self.events_dict.values()))
     
     def get_events_count(self):
         return self.count
     
     def process_events(self):
-        if self.get_events_count() == 0 and self.config.get_logging_verbose():
-            print('No events, skipping processing.')
+        if (self.get_events_count() == 0 or len(self.events_dict) == 0):
+            if self.config.get_logging_verbose():
+                print('No events, skipping processing.')
             return
         
         if self.config.get_logging_verbose():
             print(f'Processing {self.count} events')
+        
         self.lock.acquire()
+
         try:
             usage = json.dumps({'usage': self.list_events()})
             self.events_dict = {}
             self.count = 0
             # Generate a new unique session ID
             self.session_id = str(uuid.uuid4())
+        except Exception as e:
+            self.handle_exception(e)
         finally: 
             self.lock.release()
 
@@ -114,10 +122,17 @@ class events:
             if self.config.get_logging_verbose():
                 print(f'Processed events: {usage}')
         except Exception as e:
-            if self.config.get_event_reporting_trap_exceptions():
-                pass
-            else:
-                raise e
+            self.handle_exception(e)
+            
+    def handle_exception(self, ex):
+        if self.config.get_logging_verbose():
+                        template = "An exception of type {0} occurred. Arguments:\n{1!r}"
+                        message = template.format(type(ex).__name__, ex.args)
+                        print(message)
+        if self.config.get_event_reporting_trap_exceptions():
+            pass
+        else:
+            raise
         
 
 
