@@ -1,11 +1,10 @@
 import unittest
 
-from ubiq_security.credentials import configCredentials
 import ubiq_security as ubiq
 
 class EncyptTest(unittest.TestCase):
     def getCredentials(self):
-        creds = configCredentials()
+        creds = ubiq.credentials()
         return creds
     
     def test_setup(self):

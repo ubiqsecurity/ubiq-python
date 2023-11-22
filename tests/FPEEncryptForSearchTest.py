@@ -1,11 +1,11 @@
 import unittest
 
-from ubiq_security.credentials import configCredentials
+from ubiq_security.credentials import credentials
 from ubiq_security.fpe import Encrypt, Decrypt, EncryptForSearch
 
 class FPEEncyptForSearchTest(unittest.TestCase):
     def getCredentials(self):
-        creds = configCredentials()
+        creds = credentials()
         return creds
     
     def validateSearch(self, dataset_name, plain_text, expected_cipher, tweak=None):

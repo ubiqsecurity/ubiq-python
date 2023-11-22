@@ -2,4 +2,5 @@ cryptography
 requests
 six
 ubiq_security_fpe
-
+swig
+M2Crypto
