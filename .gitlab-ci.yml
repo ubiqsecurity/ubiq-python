@@ -1,0 +1,71 @@
+default:
+  image: python:3.8
+
+workflow:
+  rules:
+    - if: $CI_COMMIT_TAG
+    - if: $CI_COMMIT_BRANCH
+    - if: $CI_MERGE_REQUEST_IID
+
+stages:
+  - test
+  - load_test
+
+
+.tests: &test_config
+  before_script:
+    # so swig is locatable
+    - apt-get update
+    # for M2Crypto
+    - apt-get -y install swig
+    # Install the local directory instead of the pip version of ubiq-security.
+    - pip install .
+  script:
+    - python tests/EncryptTest.py
+    - python tests/DecryptTest.py
+    - python tests/FPEEncryptTest.py
+    - python tests/FPEEncryptForSearchTest.py
+
+## File "/usr/local/lib/python3.6/site-packages/ubiq_security_fpe/ffx.py", line 9, in <module>
+##    DEFAULT_ALPHABET: typing.Final[str] = '0123456789abcdefghijklmnopqrstuvwxyz'
+## AttributeError: module 'typing' has no attribute 'Final'
+# .tests3.6:
+#   <<: *test_config
+#   image: python:3.6
+
+.tests3.8:
+  stage: test
+  image: python:3.8
+  <<: *test_config
+
+.tests3.11:
+  stage: test
+  image: python:3.11
+  <<: *test_config
+
+# Run tests for variables in the ALL or feature environment
+test_feature:
+  extends: .tests
+  rules:
+    - if: $CI_COMMIT_REF_NAME != $CI_DEFAULT_BRANCH
+  environment: feature
+
+# Run tests for variables in the ALL or master environment
+test_master:
+  extends: .tests
+  rules:
+    - if: $CI_COMMIT_REF_NAME == $CI_DEFAULT_BRANCH
+  environment: master
+
+.load_test:
+  stage: load_test
+  script:
+    - echo "UBIQ_TEST_DATA_FILE $UBIQ_TEST_DATA_FILE"
+    - echo "UBIQ_MAX_AVG_ENCRYPT $UBIQ_MAX_AVG_ENCRYPT"
+    - echo "UBIQ_MAX_AVG_DECRYPT $UBIQ_MAX_AVG_DECRYPT"
+    - echo "UBIQ_MAX_TOTAL_ENCRYPT $UBIQ_MAX_TOTAL_ENCRYPT"
+    - echo "UBIQ_MAX_TOTAL_DECRYPT $UBIQ_MAX_TOTAL_DECRYPT"
+    - python tests/load_test.py -i $UBIQ_TEST_DATA_FILE -d $UBIQ_MAX_AVG_DECRYPT -e $UBIQ_MAX_AVG_ENCRYPT -D $UBIQ_MAX_TOTAL_DECRYPT -E $UBIQ_MAX_TOTAL_ENCRYPT
+  only:
+    variables:
+      - $SCHEDULED_TEST
