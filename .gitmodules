@@ -1,0 +1,3 @@
+[submodule "ubiq_security/fpe/algo"]
+	path = ubiq_security/fpe/algo
+	url = https://gitlab.com/ubiqsecurity/ubiq-fpe-python.git
