@@ -66,6 +66,5 @@ test_master:
     - echo "UBIQ_MAX_TOTAL_ENCRYPT $UBIQ_MAX_TOTAL_ENCRYPT"
     - echo "UBIQ_MAX_TOTAL_DECRYPT $UBIQ_MAX_TOTAL_DECRYPT"
     - python tests/load_test.py -i $UBIQ_TEST_DATA_FILE -d $UBIQ_MAX_AVG_DECRYPT -e $UBIQ_MAX_AVG_ENCRYPT -D $UBIQ_MAX_TOTAL_DECRYPT -E $UBIQ_MAX_TOTAL_ENCRYPT
-  only:
-    variables:
-      - $SCHEDULED_TEST
+  rules:
+    - if: $LOAD_TEST
