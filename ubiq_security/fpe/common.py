@@ -18,11 +18,13 @@ def strConvertRadix(s, ics, ocs):
                               ffx.StringToNumber(len(ics), ics, s),
                               len(s))
 
-def fmtInput(s, pth, ics, ocs):
+def fmtInput(s, pth, ics, ocs, rules):
     fmt = ''
     trm = ''
+    # Apply Passthrough First (should be first in list, but just in case)
+    pth_rule = next(x for x in rules if x['type'] == 'passthrough')
     for c in s:
-        if c in pth:
+        if c in pth_rule['value']:
             fmt += c
         else:
             fmt += ocs[0]
@@ -30,7 +32,21 @@ def fmtInput(s, pth, ics, ocs):
                 trm += c
             else:
                 raise RuntimeError('invalid input character')
-    return fmt, trm
+        
+    # Sort the rules by priority
+    rules.sort(key=lambda x: x['priority'])
+
+    for idx, rule in enumerate(rules):
+        if(rule['type'] == 'prefix'):
+            rules[idx]['buffer'] = trm[:rule['value']]
+            trm = trm[rule['value']:]
+        elif(rule['type'] == 'suffix'):
+            rules[idx]['buffer'] = trm[(-1 * rule['value']):]
+            trm = trm[:(-1 * rule['value'])]
+        else:
+            pass
+
+    return fmt, trm, rules
 
 def encKeyNumber(s, ocs, n, sft):    
     return ocs[ocs.find(s[0]) + (int(n) << sft)] + s[1:]
@@ -42,10 +58,23 @@ def decKeyNumber(s, ocs, sft):
 
     return ocs[encoded_value - (key_num << sft)] + s[1:], key_num
 
-def fmtOutput(fmt, s, pth):
+def fmtOutput(fmt, s, pth, rules):
+    # Sort the rules by decreasing priority
+    rules.sort(key=lambda x: x['priority'], reverse=True)
+
+    for rule in rules:
+        if(rule['type'] == 'prefix'):
+            s = rule['buffer'] + s
+        elif(rule['type'] == 'suffix'):
+            s = s + rule['buffer']
+        else:
+            pass
+
+    # Apply Passthrough Last (should be first in list, but just in case)
+    pth_rule = next(x for x in rules if x['type'] == 'passthrough')
     o = ''
     for c in fmt:
-        if c not in pth:
+        if c not in pth_rule['value']:
             o, s = o + s[0], s[1:]
         else:
             o += c
