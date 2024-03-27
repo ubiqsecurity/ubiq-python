@@ -18,7 +18,7 @@ def strConvertRadix(s, ics, ocs):
                               ffx.StringToNumber(len(ics), ics, s),
                               len(s))
 
-def fmtInput(s, ics, ocs, rules):
+def fmtInput(s, pth, ics, ocs, rules):
     fmt = ''
     trm = ''
     # Apply Passthrough First (should be first in list, but just in case)
@@ -58,7 +58,7 @@ def decKeyNumber(s, ocs, sft):
 
     return ocs[encoded_value - (key_num << sft)] + s[1:], key_num
 
-def fmtOutput(fmt, s, rules):
+def fmtOutput(fmt, s, pth, rules):
     # Sort the rules by decreasing priority
     rules.sort(key=lambda x: x['priority'], reverse=True)
 
