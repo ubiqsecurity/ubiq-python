@@ -48,12 +48,12 @@ class Encryption:
                                self._ffs['encryption_algorithm'])
 
     def Cipher(self, pt, twk = None):
-        pth = self._ffs['passthrough']
+        # pth = self._ffs['passthrough']
         ics = self._ffs['input_character_set']
         ocs = self._ffs['output_character_set']
         rules = self._ffs['partial_encryption']
 
-        fmt, pt, rules = fmtInput(pt, pth, ics, ocs, rules)
+        fmt, pt, rules = fmtInput(pt, ics, ocs, rules)
 
         ct = self._algo.Encrypt(pt, twk)
 
@@ -65,7 +65,7 @@ class Encryption:
         self._creds.add_event(dataset_name=self._ffs['name'], dataset_group_name="", billing_action="encrypt",
                 dataset_type="structured", key_number=self._key['key_number'], count=1)
         
-        return fmtOutput(fmt, ct, pth, rules)
+        return fmtOutput(fmt, ct, rules)
     
     def CipherForSearch(self, pt, twk=None):
         keys = fetchCurrentKeys(self._host,
@@ -73,12 +73,12 @@ class Encryption:
                             self._srsa,
                             self._ffs['name'])
         
-        pth = self._ffs['passthrough']
+        # pth = self._ffs['passthrough']
         ics = self._ffs['input_character_set']
         ocs = self._ffs['output_character_set']
         rules = self._ffs['partial_encryption']
 
-        fmt, pt = fmtInput(pt, pth, ics, ocs, rules)
+        fmt, pt = fmtInput(pt, ics, ocs, rules)
 
 
         searchCipher = []
@@ -94,7 +94,7 @@ class Encryption:
             ct = encKeyNumber(ct, ocs,
                           key_num,
                           self._ffs['msb_encoding_bits'])
-            searchCipher.append(fmtOutput(pt, fmt, ct, pth, rules))
+            searchCipher.append(fmtOutput(pt, fmt, ct, rules))
 
         return searchCipher
 

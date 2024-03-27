@@ -34,12 +34,12 @@ class Decryption:
         self._ffs = fetchFFS(self._host, self._papi, self._sapi, ffs)
 
     def Cipher(self, ct, twk = None):
-        pth = self._ffs['passthrough']
+        # pth = self._ffs['passthrough']
         ics = self._ffs['input_character_set']
         ocs = self._ffs['output_character_set']
         rules = self._ffs['partial_encryption']
 
-        fmt, ct, rules = fmtInput(ct, pth, ocs, ics, rules)
+        fmt, ct, rules = fmtInput(ct, ocs, ics, rules)
         ct, n = decKeyNumber(ct, ocs, self._ffs['msb_encoding_bits'])
         if not hasattr(self, '_key') or self._key['key_number'] != n:
             self._key = fetchKey(self._host,
@@ -60,7 +60,7 @@ class Decryption:
 
         self._creds.add_event(dataset_name=self._ffs['name'], dataset_group_name="", billing_action="decrypt",
             dataset_type="structured", key_number=n, count=1)
-        return fmtOutput(fmt, pt, pth, rules)
+        return fmtOutput(fmt, pt, rules)
 
 def Decrypt(creds, ffs, ct, twk = None):
     return Decryption(creds, ffs).Cipher(ct, twk)
