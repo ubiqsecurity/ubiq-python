@@ -23,8 +23,13 @@ def fmtInput(s, pth, ics, ocs, rules):
     trm = ''
     # Apply Passthrough First (should be first in list, but just in case)
     pth_rule = next(x for x in rules if x['type'] == 'passthrough')
+
+    # Support for legacy passthrough
+    if(pth_rule):
+        pth = pth_rule['value']
+
     for c in s:
-        if c in pth_rule['value']:
+        if c in pth:
             fmt += c
         else:
             fmt += ocs[0]
@@ -72,9 +77,12 @@ def fmtOutput(fmt, s, pth, rules):
 
     # Apply Passthrough Last (should be first in list, but just in case)
     pth_rule = next(x for x in rules if x['type'] == 'passthrough')
+    if(pth_rule):
+        pth = pth_rule['value']
+
     o = ''
     for c in fmt:
-        if c not in pth_rule['value']:
+        if c not in pth:
             o, s = o + s[0], s[1:]
         else:
             o += c
