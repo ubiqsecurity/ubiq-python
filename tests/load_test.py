@@ -253,7 +253,7 @@ def load_test(infile, max_encrypt, max_decrypt, avg_encrypt, avg_decrypt, creds)
         enc_timer.stop()
 
         if i['ciphertext'] != ct:
-            raise Exception('Ciphertext did not match encrypted plaintext')
+            raise Exception(f"Ciphertext did not match encrypted plaintext '{i['ciphertext']}' != '{ct}'")
         
         dec_timer.start()
         pt = ubiq_fpe.Decrypt(creds, dataset_name, i['ciphertext'])

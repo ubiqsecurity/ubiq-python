@@ -4,18 +4,17 @@ import time
 from datetime import datetime, timezone
 import threading
 import atexit 
-import uuid
 
 from .auth import http_auth
 from .version import VERSION
 
-def get_key(api_key, dataset_name, dataset_group_name, billing_action, dataset_type, key_number):
-    return "api_key='%s' datasets='%s' billing_action='%s' dataset_groups='%s' key_number='%s' dataset_type='%s'" % (api_key, dataset_name, billing_action, dataset_group_name, key_number, dataset_type)
+def get_key(api_key, dataset_name, dataset_group_name, billing_action, dataset_type, key_number, user_defined):
+    return "api_key='%s' datasets='%s' billing_action='%s' dataset_groups='%s' key_number='%s' dataset_type='%s' user_defined='%s" % (api_key, dataset_name, billing_action, dataset_group_name, key_number, dataset_type, user_defined)
 
 
 
 class event:
-    def __init__(self, api_key, dataset_name, dataset_group_name, billing_action, dataset_type, key_number, count):
+    def __init__(self, api_key, dataset_name, dataset_group_name, billing_action, dataset_type, key_number, count, user_defined):
         self.api_key = api_key
         self.dataset_name = dataset_name
         self.dataset_group_name = dataset_group_name
@@ -25,13 +24,14 @@ class event:
         self.count = count
         self.first_call_timestamp = datetime.now(timezone.utc).isoformat()
         self.last_call_timestamp = datetime.now(timezone.utc).isoformat()
+        self.user_defined =  user_defined
 
     def increment_count(self, val):
         self.count = self.count + val
         self.last_call_timestamp = datetime.now(timezone.utc).isoformat()
         return self.count
 
-    def serialize(self, session_id, processor_id):
+    def serialize(self):
         return {
             'datasets': self.dataset_name,
             'dataset_groups': self.dataset_group_name,
@@ -46,10 +46,7 @@ class event:
             'api_version': 'V3',
             'last_call_timestamp': self.last_call_timestamp,
             'first_call_timestamp': self.first_call_timestamp,
-            'user_defined': {
-                'session_id': session_id,
-                'processor_id': processor_id
-            }
+            'user_defined': self.user_defined
         }
 
 
@@ -67,17 +64,16 @@ class events:
 
         self._papi = creds.access_key_id
         self._sapi = creds.secret_signing_key
-        # Create identifier for rounds of usage submission
-        self.session_id = str(uuid.uuid4())
-        self.processor_id = str(uuid.uuid4())
+
+        self.user_defined = {}
 
     def add_event(self, api_key, dataset_name, dataset_group_name, billing_action, dataset_type, key_number, count):
         self.lock.acquire()
         try:
             key = get_key(api_key, dataset_name, dataset_group_name,
-                         billing_action, dataset_type, key_number)
+                         billing_action, dataset_type, key_number, self.user_defined)
             current_count = self.events_dict.get(key, event(api_key, dataset_name, dataset_group_name,
-                                                           billing_action, dataset_type, key_number, 0))
+                                                           billing_action, dataset_type, key_number, 0, self.user_defined))
             current_count.increment_count(count)
             self.events_dict.update({key: current_count})
             self.count += count
@@ -87,10 +83,23 @@ class events:
             self.lock.release()
 
     def list_events(self):
-        return list(map(lambda e: e.serialize(self.session_id, self.processor_id), self.events_dict.values()))
+        return list(map(lambda e: e.serialize(), self.events_dict.values()))
     
     def get_events_count(self):
         return self.count
+
+    def add_user_defined_metadata(self, data):
+        if type(data) != str:
+            self.handle_exception(Exception('User defined Metadata must be a string.'))
+        if len(data) > 1024:
+            self.handle_exception(Exception('User defined Metadata cannot be longer than 1024 characters'))
+
+        try:
+            parsed_data = json.loads(data)
+            self.user_defined = parsed_data
+            print("Added user defined metadata: %s" %(data))
+        except Exception as e:
+            self.handle_exception(Exception('User defined Metadata must be a valid Json object'))
     
     def process_events(self):
         if (self.get_events_count() == 0 or len(self.events_dict) == 0):
@@ -107,8 +116,7 @@ class events:
             usage = json.dumps({'usage': self.list_events()})
             self.events_dict = {}
             self.count = 0
-            # Generate a new unique session ID
-            self.session_id = str(uuid.uuid4())
+
         except Exception as e:
             self.handle_exception(e)
         finally: 

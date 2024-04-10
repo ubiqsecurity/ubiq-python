@@ -15,6 +15,12 @@ class credentialsInfo:
         self.__secret_crypto_access_key = secret_crypto_access_key
         self.__host = host
 
+        # Event Tracking
+        self.__configuration = ubiqConfiguration()
+        self.__events = events(self, self.__configuration)
+        self.__eventsProcessor = eventsProcessor(self.__configuration, self.__events)
+        self.__eventsProcessor.start()
+
     def get_access_key_id(self):
         return self.__access_key_id
     access_key_id=property(get_access_key_id)
@@ -34,6 +40,16 @@ class credentialsInfo:
     def set(self):
         return (self.__access_key_id != None and self.__secret_signing_key != None and self.__secret_crypto_access_key != None and 
             self.__access_key_id.strip() != "" and self.__secret_signing_key.strip() != "" and self.__secret_crypto_access_key.strip() != "")
+    
+    def add_reporting_user_defined_metadata(self, data):
+        self.__events.add_user_defined_metadata(data)
+    
+    def get_copy_of_usage(self):
+        return self.__events.list_events()
+
+    # Forward events to event queue
+    def add_event(self, dataset_name, dataset_group_name, billing_action, dataset_type, key_number, count):
+        return self.__events.add_event(self.__access_key_id, dataset_name, dataset_group_name, billing_action, dataset_type, key_number, count)
 
 class configCredentials(credentialsInfo):
 
@@ -84,16 +100,7 @@ class configCredentials(credentialsInfo):
                raise RuntimeError("Unable to open credentials file '{0}' or unable to find 'secret_signing_key' value in profile '{1}'.".format(config_file, profile))
             elif(self.__secret_crypto_access_key == None or self.__secret_crypto_access_key.strip() == ""):
                raise RuntimeError("Unable to open credentials file '{0}' or unable to find 'secret_crypto_access_key' value in profile '{1}'.".format(config_file, profile))
-        
-        # Event Tracking
-        self.__configuration = ubiqConfiguration()
-        self.__events = events(self, self.__configuration)
-        self.__eventsProcessor = eventsProcessor(self.__configuration, self.__events)
-        self.__eventsProcessor.start()
 
-    # Forward events to event queue
-    def add_event(self, dataset_name, dataset_group_name, billing_action, dataset_type, key_number, count):
-        return self.__events.add_event(self.__access_key_id, dataset_name, dataset_group_name, billing_action, dataset_type, key_number, count)
 
 
 class credentials(credentialsInfo):
@@ -111,18 +118,8 @@ class credentials(credentialsInfo):
         
         if (not self.set()):
             if (self.__access_key_id == None or self.__access_key_id.strip() == ""):
-               raise RuntimeError("Environment variable for 'UBIQ_ACCESS_KEY_ID' not set.".format(config_file, profile))
+               raise RuntimeError("Environment variable for 'UBIQ_ACCESS_KEY_ID' not set.")
             elif (self.__secret_signing_key == None or self.__secret_signing_key.strip() == ""):
-               raise RuntimeError("Environment variable for 'UBIQ_SECRET_SIGNING_KEY' not set.".format(config_file, profile))
+               raise RuntimeError("Environment variable for 'UBIQ_SECRET_SIGNING_KEY' not set.")
             elif(self.__secret_crypto_access_key == None or self.__secret_crypto_access_key.strip() == ""):
-               raise RuntimeError("Environment variable for 'UBIQ_SECRET_CRYPTO_ACCESS_KEY' not set.".format(config_file, profile))
-        
-        # Event Tracking
-        self.__configuration = ubiqConfiguration()
-        self.__events = events(self, self.__configuration)
-        self.__eventsProcessor = eventsProcessor(self.__configuration, self.__events)
-        self.__eventsProcessor.start()
-    
-    # Forward events to event queue
-    def add_event(self, dataset_name, dataset_group_name, billing_action, dataset_type, key_number, count):
-        return self.__events.add_event(self.__access_key_id, dataset_name, dataset_group_name, billing_action, dataset_type, key_number, count)
+               raise RuntimeError("Environment variable for 'UBIQ_SECRET_CRYPTO_ACCESS_KEY' not set.")
