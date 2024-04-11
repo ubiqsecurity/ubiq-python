@@ -1,3 +1,4 @@
+import math
 import requests
 import json
 import time
@@ -8,10 +9,29 @@ import uuid
 
 from .auth import http_auth
 from .version import VERSION
+from .configuration import TimestampGranularity
 
 def get_key(api_key, dataset_name, dataset_group_name, billing_action, dataset_type, key_number):
     return "api_key='%s' datasets='%s' billing_action='%s' dataset_groups='%s' key_number='%s' dataset_type='%s'" % (api_key, dataset_name, billing_action, dataset_group_name, key_number, dataset_type)
 
+def format_timestamp(timestamp, timestampGranularity):
+    dt = datetime(timestamp.year, timestamp.month, timestamp.day, 0, 0, 0, 0, tzinfo=timezone.utc)
+    # Apply from least granular to most granular
+    # No switch statements till Python 3.10
+    if timestampGranularity.value <= TimestampGranularity.HALF_DAYS.value:
+        if timestamp.hour >= 12:
+            dt = dt.replace(hour=12)
+    if timestampGranularity.value <= TimestampGranularity.HOURS.value:
+        dt = dt.replace(hour=timestamp.hour)
+    if timestampGranularity.value <= TimestampGranularity.MINUTES.value:
+        dt = dt.replace(minute=timestamp.minute)
+    if timestampGranularity.value <= TimestampGranularity.SECONDS.value:
+        dt = dt.replace(second=timestamp.second)
+    if timestampGranularity.value <= TimestampGranularity.MILLIS.value:
+        dt = dt.replace(microsecond=math.floor(timestamp.microsecond/1000)*1000)
+    if timestampGranularity.value <= TimestampGranularity.MICROS.value:
+        dt = dt.replace(microsecond=timestamp.microsecond)
+    return dt.isoformat()
 
 
 class event:
@@ -23,15 +43,15 @@ class event:
         self.dataset_type = dataset_type
         self.key_number = key_number
         self.count = count
-        self.first_call_timestamp = datetime.now(timezone.utc).isoformat()
-        self.last_call_timestamp = datetime.now(timezone.utc).isoformat()
+        self.first_call_timestamp = datetime.now(timezone.utc)
+        self.last_call_timestamp = datetime.now(timezone.utc)
 
     def increment_count(self, val):
         self.count = self.count + val
-        self.last_call_timestamp = datetime.now(timezone.utc).isoformat()
+        self.last_call_timestamp = datetime.now(timezone.utc)
         return self.count
 
-    def serialize(self, session_id, processor_id):
+    def serialize(self, timestampGranularity):
         return {
             'datasets': self.dataset_name,
             'dataset_groups': self.dataset_group_name,
@@ -44,12 +64,8 @@ class event:
             'product_version': VERSION,
             'user-agent': 'ubiq-python/' + VERSION,
             'api_version': 'V3',
-            'last_call_timestamp': self.last_call_timestamp,
-            'first_call_timestamp': self.first_call_timestamp,
-            'user_defined': {
-                'session_id': session_id,
-                'processor_id': processor_id
-            }
+            'last_call_timestamp': format_timestamp(self.last_call_timestamp, timestampGranularity),
+            'first_call_timestamp': format_timestamp(self.first_call_timestamp, timestampGranularity),
         }
 
 
@@ -87,7 +103,7 @@ class events:
             self.lock.release()
 
     def list_events(self):
-        return list(map(lambda e: e.serialize(self.session_id, self.processor_id), self.events_dict.values()))
+        return list(map(lambda e: e.serialize(self.config.get_event_reporting_timestamp_granularity()), self.events_dict.values()))
     
     def get_events_count(self):
         return self.count
