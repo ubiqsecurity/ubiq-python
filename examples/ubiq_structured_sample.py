@@ -50,7 +50,7 @@ import configparser
 
 # Path to the encrypt / decrypt libraries
 import  ubiq_security as ubiq
-import ubiq_security.fpe as ubiq_fpe
+import ubiq_security.structured as ubiq_structured
 
 from argparse import ArgumentParser
 from argparse import RawDescriptionHelpFormatter
@@ -108,14 +108,14 @@ USAGE
         parser.add_argument('-c', '--creds', dest="credentials", help="Set the file name with the API credentials (default: ~/.ubiq/credentials)", required=False)
         parser.add_argument('-P', '--profile', dest="profile", help="Identify the profile within the credentials file (default: default)", required=False, default='default')
 
-        parser.add_argument('-n', '--ffsname', dest="ffs_name", help="Set the ffs name, for example SSN.", required=True)
+        parser.add_argument('-n', '--datasetname', dest="dataset_name", help="Set the dataset name, for example SSN.", required=True)
                
         # Process arguments
         args = parser.parse_args()
 
         encryption = args.encryption
         decryption = args.decryption
-        ffs_name = args.ffs_name
+        dataset_name = args.dataset_name
 
         ''' 
         Make sure an encrypt / decrypt operation has been specified
@@ -126,7 +126,7 @@ USAGE
 
         creds = ubiq.configCredentials(args.credentials, args.profile)
 
-        return True, encryption, decryption, ffs_name, creds
+        return True, encryption, decryption, dataset_name, creds
 
     except KeyboardInterrupt:
         ### handle keyboard interrupt ###
@@ -139,18 +139,18 @@ USAGE
         sys.stderr.write(indent + "  For help use --help\n")
         return False
 
-def simple_encryption(creds, ffs_name, data):
+def simple_encryption(creds, dataset_name, data):
     ''' Sample of the Ubiq Platform using the simple encryption API.'''
     try:
-       ct = ubiq_fpe.Encrypt(creds, ffs_name, data)
+       ct = ubiq_structured.Encrypt(creds, dataset_name, data)
        print("ENCRYPTED cipher= %s \n" %(ct))
     except Exception as err:
        print("Error performing encryption: ", repr(err))
 
-def simple_decryption(creds, ffs_name, data):
+def simple_decryption(creds, dataset_name, data):
     ''' Sample of the Ubiq Platform using the simple decryption API.'''
     try:
-       pt = ubiq_fpe.Decrypt(creds, ffs_name, data)
+       pt = ubiq_structured.Decrypt(creds, dataset_name, data)
        print("DECRYPTED plainText= %s \n" %(pt))
     except Exception as err:
        print("Error performing decryption: ", repr(err))
@@ -161,13 +161,13 @@ if __name__ == "__main__":
         # Parse the args and return the necessary information.  An error during
         # parsing or testing the input / output files will result in valid_args
         # being false which will prevent commands from being executed.
-        valid_args, encryption, decryption, ffs_name, creds = parse_args()
+        valid_args, encryption, decryption, dataset_name, creds = parse_args()
         # If the arguments were valid, then process the encrypt or decrypt
         if valid_args:
             if encryption:
-                status = simple_encryption(creds, ffs_name, encryption)
+                status = simple_encryption(creds, dataset_name, encryption)
             else:
-                status = simple_decryption(creds, ffs_name, decryption)
+                status = simple_decryption(creds, dataset_name, decryption)
     except Exception as inst:
         valid_args = False
 

@@ -6,7 +6,7 @@ Ubiq Security Platform API from applications written in the Python language.
 It includes a pre-defined set of classes that will provide simple interfaces
 to encrypt and decrypt data
 
-This library also incorporates Ubiq Format Preserving Encryption (eFPE).  eFPE allows encrypting so that the output cipher text is in the same format as the original plaintext. This includes preserving special characters and control over what characters are permitted in the cipher text. For example, consider encrypting a social security number '123-45-6789'. The cipher text will maintain the dashes and look something like: 'W$+-qF-oMMV'.
+This library also incorporates Ubiq Structured Encryption.  Structured Encryption allows encrypting so that the output cipher text is in the same format as the original plaintext. This includes preserving special characters and control over what characters are permitted in the cipher text. For example, consider encrypting a social security number '123-45-6789'. The cipher text will maintain the dashes and look something like: 'W$+-qF-oMMV'.
 
 ## Documentation
 
@@ -190,19 +190,18 @@ BLOCK_SIZE = 1024 * 1024
     plaintext_data += decryption.end()
 
 ```
-## Ubiq Format Preserving Encryption
+## Ubiq Structured Encryption
 
-This library incorporates Ubiq Format Preserving Encryption (eFPE).
+This library incorporates Ubiq Structured Encryption.
 
 ## Requirements
 
--   Please follow the same requirements as described above for the non-eFPE functionality.
--   This library has dependencies on ubiqsecurity-fpe library available for download in the Ubiq GitHub/GitLab repository.
+-   Please follow the same requirements as described above for the non-structured functionality.
 
 ## Usage
 
 You will need to obtain account credentials in the same way as described above for conventional encryption/decryption. When
-you do this in your [Ubiq Dashboard][dashboard] [credentials][credentials], you'll need to enable the eFPE option.
+you do this in your [Ubiq Dashboard][dashboard] [credentials][credentials], you'll need to enable access to structured datasets.
 The credentials can be set using environment variables, loaded from an explicitly
 specified file, or read from the default location (~/.ubiq/credentials).
 
@@ -211,47 +210,47 @@ Require the Security Client module in your Python class.
 
 ```python
 import ubiq_security as ubiq
-import ubiq_security.fpe as ubiqfpe
+import ubiq_security.structured as ubiq_structured
 ```
 
 
 ### Encrypt a social security text field - simple interface
-Pass credentials, the name of a Field Format Specification, FFS, and data into the encryption function.
+Pass credentials, the name of a structured dataset, and data into the encryption function.
 The encrypted data will be returned.
 
 ```python
-ffs_name = "SSN";
+dataset_name = "SSN";
 plain_text = "123-45-6789";
 
 credentials = ubiq.ConfigCredentials('./credentials', 'default');
 
-encrypted_data = ubiqfpe.Encrypt(
+encrypted_data = ubiq_structured.Encrypt(
         credentials,
-        ffs_name,
+        dataset_name,
         plain_text);
         
 print('ENCRYPTED ciphertext= ' + encrypted_data + '\n');
 ```
 
 ### Decrypt a social security text field - simple interface
-Pass credentials, the name of a Field Format Specification, FFS, and data into the decryption function.
+Pass credentials, the name of a structured dataset, and data into the decryption function.
 The decrypted data will be returned.
 
 ```python
-ffs_name = "SSN";
+dataset_name = "SSN";
 cipher_text = "300-0E-274t";
 
 credentials = ubiq.ConfigCredentials('./credentials', 'default');
 
-decrypted_text = ubiqfpe.Decrypt(
+decrypted_text = ubiq_structured.Decrypt(
         credentials,
-        ffs_name,
+        dataset_name,
         cipher_text);
         
 print('DECRYPTED decrypted_text= ' + decrypted_text + '\n');
 ```
 
-Additional information on how to use these FFS models in your own applications is available by contacting Ubiq.
+Additional information on how to use these models in your own applications is available by contacting Ubiq.
 
 ### Custom Metadata for Usage Reporting
 There are cases where a developer would like to attach metadata to usage information reported by the application.  Both the structured and unstructured interfaces allow user_defined metadata to be sent with the usage information reported by the libraries.
@@ -266,12 +265,12 @@ Examples are shown below.
   special_value = "information"
   credentials.add_reporting_user_defined_metadata("{\"some_key\":\"some_value\"}")
 
-  encrypted_data = ubiqfpe.Encrypt(
+  encrypted_data = ubiq_structured.Encrypt(
     credentials,
-    ffs_name,
+    dataset_name,
     plain_text);
   ...
-  # FPE Encrypt and Decrypt operations
+  # Structured Encrypt and Decrypt operations
 ```
 
 ```python
@@ -301,10 +300,10 @@ The same plaintext data will result in different cipher text when encrypted usin
 ```python
 
 credentials = ubiq.ConfigCredentials('./credentials', 'default');
-ffs_name = "SSN";
+dataset_name = "SSN";
 plain_text = "123-45-6789";
 
-ct_arr = ubiqfpe.EncryptForSearch(credentials, ffs_name, plain_text)
+ct_arr = ubiq_structured.EncryptForSearch(credentials, dataset_name, plain_text)
 ```
 
 
