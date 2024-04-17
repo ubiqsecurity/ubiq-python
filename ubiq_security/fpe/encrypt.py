@@ -53,7 +53,14 @@ class Encryption:
         ocs = self._ffs['output_character_set']
         rules = self._ffs.get('passthrough_rules', [])
 
+        input_min = self._ffs['min_input_length']
+        input_max = self._ffs['max_input_length']
+
         fmt, pt, rules = fmtInput(pt, pth, ics, ocs, rules)
+
+        input_len = len(pt)
+        if input_len < input_min or input_len > input_max:
+            raise RuntimeError('Invalid input len (%s) min: %s max %s'%(input_len, input_min, input_max))
 
         ct = self._algo.Encrypt(pt, twk)
 

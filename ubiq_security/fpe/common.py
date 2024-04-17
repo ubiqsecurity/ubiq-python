@@ -49,7 +49,7 @@ def fmtInput(s, pth, ics, ocs, rules = []):
             rules[idx]['buffer'] = trm[(-1 * rule['value']):]
             trm = trm[:(-1 * rule['value'])]
         else:
-            pass
+            raise RuntimeError('Ubiq Python Library does not support rule type "%s" at this time.'%(rule['type']))
 
     return fmt, trm, rules
 
@@ -84,7 +84,7 @@ def fmtOutput(fmt, s, pth, rules):
         elif(rule['type'] == 'suffix'):
             s = s + rule['buffer']
         else:
-            pass   
+            raise RuntimeError('Ubiq Python Library does not support rule type "%s" at this time.'%(rule['type']))
 
     return s
 

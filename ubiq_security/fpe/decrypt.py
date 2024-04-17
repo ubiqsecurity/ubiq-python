@@ -39,7 +39,15 @@ class Decryption:
         ocs = self._ffs['output_character_set']
         rules = self._ffs.get('passthrough_rules', [])
 
+        input_min = self._ffs['min_input_length']
+        input_max = self._ffs['max_input_length']
+        
         fmt, ct, rules = fmtInput(ct, pth, ocs, ics, rules)
+
+        input_len = len(ct)
+        if input_len < input_min or input_len > input_max:
+            raise RuntimeError('Invalid input len (%s) min: %s max %s'%(input_len, input_min, input_max))
+
         ct, n = decKeyNumber(ct, ocs, self._ffs['msb_encoding_bits'])
         if not hasattr(self, '_key') or self._key['key_number'] != n:
             self._key = fetchKey(self._host,
