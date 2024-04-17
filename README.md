@@ -253,6 +253,47 @@ print('DECRYPTED decrypted_text= ' + decrypted_text + '\n');
 
 Additional information on how to use these FFS models in your own applications is available by contacting Ubiq.
 
+### Custom Metadata for Usage Reporting
+There are cases where a developer would like to attach metadata to usage information reported by the application.  Both the structured and unstructured interfaces allow user_defined metadata to be sent with the usage information reported by the libraries.
+
+The **add_reporting_user_defined_metadata** function accepts a string in JSON format that will be stored in the database with the usage records.  The string must be less than 1024 characters and be a valid JSON format.  The string must include both the `{` and `}` symbols.  The supplied value will be used until the object goes out of scope.  Due to asynchronous processing, changing the value may be immediately reflected in subsequent usage.  If immediate changes to the values are required, it would be safer to create a new encrypt / decrypt object and call the `add_reporting_user_defined_metadata` function with the new values.
+
+Examples are shown below.
+```python
+  ...
+  credentials = ubiq.ConfigCredentials('./credentials', 'default');
+
+  special_value = "information"
+  credentials.add_reporting_user_defined_metadata("{\"some_key\":\"some_value\"}")
+
+  encrypted_data = ubiqfpe.Encrypt(
+    credentials,
+    ffs_name,
+    plain_text);
+  ...
+  # FPE Encrypt and Decrypt operations
+```
+
+```python
+  ...
+  credentials = ubiq.credentials(access_key_id = "...", secret_signing_key = "...", secret_crypto_access_key = "...")
+  credentials.add_reporting_user_defined_metadata("{\"some_meaningful_flag\" : true }")
+  ct = ubiq.encrypt(creds,
+                  data)
+   ....
+  # Unstructured Encrypt operations
+```
+### Retrieve Current Usage
+Within an encryption session, either Encrypt or Decrypt, the client library can retrieve a copy of the unreported events.  This is for read only purposes and has the potential to be different each time it is called due to encrypt / decrypt activities and the asynchronous event billing process.
+```python
+  ...
+  ct = ubiq.encrypt(creds,data)
+  
+  usage = creds.get_copy_of_usage()
+  
+  ...
+```
+
 ### Encrypt For Search
 
 The same plaintext data will result in different cipher text when encrypted using different data keys. The Encrypt For Search function will encrypt the same plain text for a given dataset using all previously used data keys. This will provide a collection of cipher text values that can be used when searching for existing records where the data was encrypted and the specific version of the data key is not known in advance.
@@ -264,6 +305,44 @@ ffs_name = "SSN";
 plain_text = "123-45-6789";
 
 ct_arr = ubiqfpe.EncryptForSearch(credentials, ffs_name, plain_text)
+```
+
+
+#### Configuration File
+
+A sample configuration file is shown below.  The configuration is in JSON format.  The <b>event_reporting</b> section contains values to control how often the usage is reported.  
+
+- <b>wake_interval</b> indicates the number of seconds to sleep before waking to determine if there has been enough activity to report usage
+- <b>minimum_count</b> indicates the minimum number of usage records that must be queued up before sending the usage
+- <b>flush_interval</b> indicates the sleep interval before all usage will be flushed to server.
+- <b>trap_exceptions</b> indicates whether exceptions encountered while reporting usage will be trapped and ignored or if it will become an error that gets reported to the application
+- <b>timestamp_granularity</b> indicates the how granular the timestamp will be when reporting events.  Valid values are
+  - "MICROS"  
+    // DEFAULT: values are reported down to the microsecond resolution when possible
+  - "MILLIS"  
+  // values are reported to the millisecond
+  - "SECONDS"  
+  // values are reported to the second
+  - "MINUTES"  
+  // values are reported to minute
+  - "HOURS"  
+  // values are reported to hour
+  - "HALF_DAYS"  
+  // values are reported to half day
+  - "DAYS"  
+  // values are reported to the day
+
+
+```json
+{
+  "event_reporting": {
+    "wake_interval": 1,
+    "minimum_count": 2,
+    "flush_interval": 2,
+    "trap_exceptions": false,
+    "timestamp_granularity" : "MICROS"
+  }
+}
 ```
 
 

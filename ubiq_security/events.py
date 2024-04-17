@@ -1,21 +1,40 @@
+import math
 import requests
 import json
 import time
 from datetime import datetime, timezone
 import threading
 import atexit 
-import uuid
 
 from .auth import http_auth
 from .version import VERSION
+from .configuration import TimestampGranularity
 
-def get_key(api_key, dataset_name, dataset_group_name, billing_action, dataset_type, key_number):
-    return "api_key='%s' datasets='%s' billing_action='%s' dataset_groups='%s' key_number='%s' dataset_type='%s'" % (api_key, dataset_name, billing_action, dataset_group_name, key_number, dataset_type)
+def get_key(api_key, dataset_name, dataset_group_name, billing_action, dataset_type, key_number, user_defined):
+    return "api_key='%s' datasets='%s' billing_action='%s' dataset_groups='%s' key_number='%s' dataset_type='%s' user_defined='%s" % (api_key, dataset_name, billing_action, dataset_group_name, key_number, dataset_type, user_defined)
 
+def format_timestamp(timestamp, timestampGranularity):
+    dt = datetime(timestamp.year, timestamp.month, timestamp.day, 0, 0, 0, 0, tzinfo=timezone.utc)
+    # Apply from least granular to most granular
+    # No switch statements till Python 3.10
+    if timestampGranularity.value <= TimestampGranularity.HALF_DAYS.value:
+        if timestamp.hour >= 12:
+            dt = dt.replace(hour=12)
+    if timestampGranularity.value <= TimestampGranularity.HOURS.value:
+        dt = dt.replace(hour=timestamp.hour)
+    if timestampGranularity.value <= TimestampGranularity.MINUTES.value:
+        dt = dt.replace(minute=timestamp.minute)
+    if timestampGranularity.value <= TimestampGranularity.SECONDS.value:
+        dt = dt.replace(second=timestamp.second)
+    if timestampGranularity.value <= TimestampGranularity.MILLIS.value:
+        dt = dt.replace(microsecond=math.floor(timestamp.microsecond/1000)*1000)
+    if timestampGranularity.value <= TimestampGranularity.MICROS.value:
+        dt = dt.replace(microsecond=timestamp.microsecond)
+    return dt.isoformat()
 
 
 class event:
-    def __init__(self, api_key, dataset_name, dataset_group_name, billing_action, dataset_type, key_number, count):
+    def __init__(self, api_key, dataset_name, dataset_group_name, billing_action, dataset_type, key_number, count, user_defined):
         self.api_key = api_key
         self.dataset_name = dataset_name
         self.dataset_group_name = dataset_group_name
@@ -23,15 +42,16 @@ class event:
         self.dataset_type = dataset_type
         self.key_number = key_number
         self.count = count
-        self.first_call_timestamp = datetime.now(timezone.utc).isoformat()
-        self.last_call_timestamp = datetime.now(timezone.utc).isoformat()
+        self.first_call_timestamp = datetime.now(timezone.utc)
+        self.last_call_timestamp = datetime.now(timezone.utc)
+        self.user_defined =  user_defined
 
     def increment_count(self, val):
         self.count = self.count + val
-        self.last_call_timestamp = datetime.now(timezone.utc).isoformat()
+        self.last_call_timestamp = datetime.now(timezone.utc)
         return self.count
 
-    def serialize(self, session_id, processor_id):
+    def serialize(self, timestampGranularity):
         return {
             'datasets': self.dataset_name,
             'dataset_groups': self.dataset_group_name,
@@ -44,12 +64,9 @@ class event:
             'product_version': VERSION,
             'user-agent': 'ubiq-python/' + VERSION,
             'api_version': 'V3',
-            'last_call_timestamp': self.last_call_timestamp,
-            'first_call_timestamp': self.first_call_timestamp,
-            'user_defined': {
-                'session_id': session_id,
-                'processor_id': processor_id
-            }
+            'last_call_timestamp': format_timestamp(self.last_call_timestamp, timestampGranularity),
+            'first_call_timestamp': format_timestamp(self.first_call_timestamp, timestampGranularity),
+            'user_defined': self.user_defined
         }
 
 
@@ -67,17 +84,16 @@ class events:
 
         self._papi = creds.access_key_id
         self._sapi = creds.secret_signing_key
-        # Create identifier for rounds of usage submission
-        self.session_id = str(uuid.uuid4())
-        self.processor_id = str(uuid.uuid4())
+
+        self.user_defined = {}
 
     def add_event(self, api_key, dataset_name, dataset_group_name, billing_action, dataset_type, key_number, count):
         self.lock.acquire()
         try:
             key = get_key(api_key, dataset_name, dataset_group_name,
-                         billing_action, dataset_type, key_number)
+                         billing_action, dataset_type, key_number, self.user_defined)
             current_count = self.events_dict.get(key, event(api_key, dataset_name, dataset_group_name,
-                                                           billing_action, dataset_type, key_number, 0))
+                                                           billing_action, dataset_type, key_number, 0, self.user_defined))
             current_count.increment_count(count)
             self.events_dict.update({key: current_count})
             self.count += count
@@ -87,10 +103,23 @@ class events:
             self.lock.release()
 
     def list_events(self):
-        return list(map(lambda e: e.serialize(self.session_id, self.processor_id), self.events_dict.values()))
+        return list(map(lambda e: e.serialize(self.config.get_event_reporting_timestamp_granularity()), self.events_dict.values()))
     
     def get_events_count(self):
         return self.count
+
+    def add_user_defined_metadata(self, data):
+        if type(data) != str:
+            self.handle_exception(Exception('User defined Metadata must be a string.'))
+        if len(data) > 1024:
+            self.handle_exception(Exception('User defined Metadata cannot be longer than 1024 characters'))
+
+        try:
+            parsed_data = json.loads(data)
+            self.user_defined = parsed_data
+            print("Added user defined metadata: %s" %(data))
+        except Exception as e:
+            self.handle_exception(Exception('User defined Metadata must be a valid Json object'))
     
     def process_events(self):
         if (self.get_events_count() == 0 or len(self.events_dict) == 0):
@@ -107,8 +136,7 @@ class events:
             usage = json.dumps({'usage': self.list_events()})
             self.events_dict = {}
             self.count = 0
-            # Generate a new unique session ID
-            self.session_id = str(uuid.uuid4())
+
         except Exception as e:
             self.handle_exception(e)
         finally: 

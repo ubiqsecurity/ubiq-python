@@ -1,5 +1,6 @@
 # python directories
 build/
+builds/
 dist/
 *.egg-info/
 __pycache__/
