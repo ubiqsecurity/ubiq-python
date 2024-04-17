@@ -18,31 +18,31 @@ def strConvertRadix(s, ics, ocs):
                               ffx.StringToNumber(len(ics), ics, s),
                               len(s))
 
-def fmtInput(s, pth, ics, ocs, rules):
+def fmtInput(s, pth, ics, ocs, rules = []):
     fmt = ''
-    trm = ''
-    # Apply Passthrough First (should be first in list, but just in case)
-    pth_rule = next(x for x in rules if x['type'] == 'passthrough')
-
-    # Support for legacy passthrough
-    if(pth_rule):
-        pth = pth_rule['value']
-
-    for c in s:
-        if c in pth:
-            fmt += c
-        else:
-            fmt += ocs[0]
-            if c in ics:
-                trm += c
-            else:
-                raise RuntimeError('invalid input character')
+    trm = '%s'%(s)
+    
+    # Check if there's a passthrough rule. If not, create for legacy passthrough.
+    if not any(rule.get('type') == 'passthrough' for rule in rules):
+        rules.insert(0, {'type': 'passthrough', 'value': pth, 'priority': 1})
         
     # Sort the rules by priority
     rules.sort(key=lambda x: x['priority'])
-
     for idx, rule in enumerate(rules):
-        if(rule['type'] == 'prefix'):
+        if(rule['type'] == 'passthrough'):
+            pth = rule['value']
+            o = ''
+            for c in trm:
+                if c in pth:
+                    fmt += c
+                else:
+                    fmt += ocs[0]
+                    if c in ics:
+                        o += c
+                    else:
+                        raise RuntimeError('invalid input character')
+            trm = o
+        elif(rule['type'] == 'prefix'):
             rules[idx]['buffer'] = trm[:rule['value']]
             trm = trm[rule['value']:]
         elif(rule['type'] == 'suffix'):
@@ -68,29 +68,25 @@ def fmtOutput(fmt, s, pth, rules):
     rules.sort(key=lambda x: x['priority'], reverse=True)
 
     for rule in rules:
-        if(rule['type'] == 'prefix'):
+        if(rule['type'] == 'passthrough'):
+            o = ''
+            for c in fmt:
+                if c not in pth:
+                    o, s = o + s[0], s[1:]
+                else:
+                    o += c
+                
+            if len(s) > 0:
+                raise RuntimeError('mismatched format and output strings')
+            s = o
+        elif(rule['type'] == 'prefix'):
             s = rule['buffer'] + s
         elif(rule['type'] == 'suffix'):
             s = s + rule['buffer']
         else:
-            pass
+            pass   
 
-    # Apply Passthrough Last (should be first in list, but just in case)
-    pth_rule = next(x for x in rules if x['type'] == 'passthrough')
-    if(pth_rule):
-        pth = pth_rule['value']
-
-    o = ''
-    for c in fmt:
-        if c not in pth:
-            o, s = o + s[0], s[1:]
-        else:
-            o += c
-
-    if len(s) > 0:
-        raise RuntimeError('mismatched format and output strings')
-
-    return o
+    return s
 
 def fetchFFS(host, papi, sapi, ffs):
     if (not papi in fetchFFS.cache or

@@ -51,7 +51,7 @@ class Encryption:
         pth = self._ffs['passthrough']
         ics = self._ffs['input_character_set']
         ocs = self._ffs['output_character_set']
-        rules = self._ffs['partial_encryption']
+        rules = self._ffs.get('passthrough_rules', [])
 
         fmt, pt, rules = fmtInput(pt, pth, ics, ocs, rules)
 
@@ -76,7 +76,8 @@ class Encryption:
         pth = self._ffs['passthrough']
         ics = self._ffs['input_character_set']
         ocs = self._ffs['output_character_set']
-        rules = self._ffs['partial_encryption']
+        rules = self._ffs.get('passthrough_rules', [])
+        
 
         fmt, pt = fmtInput(pt, pth, ics, ocs, rules)
 
