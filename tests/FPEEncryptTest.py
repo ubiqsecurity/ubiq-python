@@ -129,18 +129,17 @@ class FPEEncyptTest(unittest.TestCase):
 
         the_exception = e.exception
         self.assertEqual(type(the_exception).__name__, 'RuntimeError')
-        self.assertEqual(str(the_exception), 'Input or tweak length error')
+        self.assertEqual(str(the_exception), 'Invalid input len (4) min: 6 max 255')
 
-    ## Max Length is not enforced atm.
-    # def test_encryptFPE_Invalid_LEN_2(self):
-    #     creds = self.getCredentials()
+    def test_encryptFPE_Invalid_LEN_2(self):
+        creds = self.getCredentials()
 
-    #     with self.assertRaises(Exception) as e:
-    #         self.cycleEncryption('SSN', '12345678901234567890', creds)
+        with self.assertRaises(Exception) as e:
+            self.cycleEncryption('SSN', '123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890', creds)
 
-    #     the_exception = e.exception
-    #     self.assertEqual(type(the_exception).__name__, 'RuntimeError')
-    #     self.assertEqual(str(the_exception), 'Input or tweak length error')
+        the_exception = e.exception
+        self.assertEqual(type(the_exception).__name__, 'RuntimeError')
+        self.assertEqual(str(the_exception), 'Invalid input len (300) min: 6 max 255')
 
     def test_encryptFPE_Invalid_specific_creds_1(self):
         creds = self.getCredentials()
