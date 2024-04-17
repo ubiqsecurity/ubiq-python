@@ -102,7 +102,7 @@ class Encryption:
             ct = encKeyNumber(ct, ocs,
                           key_num,
                           self._ffs['msb_encoding_bits'])
-            searchCipher.append(fmtOutput(pt, fmt, ct, pth, rules))
+            searchCipher.append(fmtOutput(fmt, ct, pth, rules))
 
         return searchCipher
 
