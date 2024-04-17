@@ -86,7 +86,7 @@ class Encryption:
         rules = self._ffs.get('passthrough_rules', [])
         
 
-        fmt, pt = fmtInput(pt, pth, ics, ocs, rules)
+        fmt, pt, rules = fmtInput(pt, pth, ics, ocs, rules)
 
 
         searchCipher = []
