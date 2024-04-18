@@ -1,4 +1,7 @@
 # Changelog
+# TBD - TBD
+* Support for Partial Encryption
+
 ## 2.1.3 - 2023-10-23
 * Support for Piecewise event reporting
 * Add caching for unstructured decrypt keys and flag to enable or disable
