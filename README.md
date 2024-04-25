@@ -307,9 +307,12 @@ ct_arr = ubiq_structured.EncryptForSearch(credentials, dataset_name, plain_text)
 ```
 
 
-#### Configuration File
+### Configuration File
 
-A sample configuration file is shown below.  The configuration is in JSON format.  The <b>event_reporting</b> section contains values to control how often the usage is reported.  
+A sample configuration file is shown below.  The configuration is in JSON format.  
+
+#### Event Reporting
+The <b>event_reporting</b> section contains values to control how often the usage is reported.  
 
 - <b>wake_interval</b> indicates the number of seconds to sleep before waking to determine if there has been enough activity to report usage
 - <b>minimum_count</b> indicates the minimum number of usage records that must be queued up before sending the usage
@@ -331,6 +334,12 @@ A sample configuration file is shown below.  The configuration is in JSON format
   - "DAYS"  
   // values are reported to the day
 
+#### Key Caching
+The <b>key_caching</b> section contains values to control how and when keys are cached.
+
+- <b>unstructured</b> indicates whether keys will be cached when doing unstructured decryption. (default: true)
+- <b>encrypt</b> indicates if keys should be stored encrypted. If keys are encrypted, they will be harder to access via memory, but require them to be decrypted with each use. (default: false)
+
 
 ```json
 {
@@ -340,6 +349,10 @@ A sample configuration file is shown below.  The configuration is in JSON format
     "flush_interval": 2,
     "trap_exceptions": false,
     "timestamp_granularity" : "MICROS"
+  },
+  "key_caching":{
+    "unstructured": true,
+    "encrypt": false
   }
 }
 ```
