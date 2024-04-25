@@ -1,4 +1,8 @@
 # Changelog
+## TBD - TBD
+* Combine structured encryption (fka ubiq_fpe) library into this main library.
+* Update method references and documentation to match this.
+
 ## 2.1.3 - 2023-10-23
 * Support for Piecewise event reporting
 * Add caching for unstructured decrypt keys and flag to enable or disable

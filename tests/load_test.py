@@ -50,7 +50,7 @@ import traceback
 
 # Path to the encrypt / decrypt libraries
 import  ubiq_security as ubiq
-import ubiq_security.fpe as ubiq_fpe
+import ubiq_security.structured as ubiq_structured
 
 from argparse import ArgumentParser
 from argparse import RawDescriptionHelpFormatter
@@ -242,21 +242,21 @@ def load_test(infile, max_encrypt, max_decrypt, avg_encrypt, avg_decrypt, creds)
 
         # Prime the cache
         if(dataset_name not in enc_datasets):
-            ubiq_fpe.Encrypt(creds, dataset_name, i['plaintext'])
-            ubiq_fpe.Decrypt(creds, dataset_name, i['ciphertext'])
+            ubiq_structured.Encrypt(creds, dataset_name, i['plaintext'])
+            ubiq_structured.Decrypt(creds, dataset_name, i['ciphertext'])
         
         enc_timer = enc_datasets.setdefault(dataset_name, Timer())
         dec_timer = dec_datasets.setdefault(dataset_name, Timer())
 
         enc_timer.start()
-        ct = ubiq_fpe.Encrypt(creds, dataset_name, i['plaintext'])
+        ct = ubiq_structured.Encrypt(creds, dataset_name, i['plaintext'])
         enc_timer.stop()
 
         if i['ciphertext'] != ct:
             raise Exception(f"Ciphertext did not match encrypted plaintext '{i['ciphertext']}' != '{ct}'")
         
         dec_timer.start()
-        pt = ubiq_fpe.Decrypt(creds, dataset_name, i['ciphertext'])
+        pt = ubiq_structured.Decrypt(creds, dataset_name, i['ciphertext'])
         dec_timer.stop()
 
         if i['plaintext'] != pt:

@@ -16,7 +16,7 @@ Provided is `RAW_DATA.csv`. This is around 1000 lines of randomly generated user
 bucket_name="test-bucket"
 file_name="RAW_DATA.csv"
 ```
-### FPE Definitions
+### Strucutred Dataset Definitions
 On your account you should create 4 Datasets in the same Dataset Group, accessible by your API Key. (If you choose different names, update your local script accordingly, Line 48-51)
 1. FULL_NAME_ETL
    - Input: `ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz'-.`

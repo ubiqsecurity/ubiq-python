@@ -1,9 +1,9 @@
 import unittest
 
 from ubiq_security.credentials import credentials
-from ubiq_security.fpe import Encrypt, Decrypt
+from ubiq_security.structured import Encrypt, Decrypt
 
-class FPEEncyptTest(unittest.TestCase):
+class StructuredEncyptTest(unittest.TestCase):
     def getCredentials(self):
         creds = credentials()
         return creds
@@ -27,25 +27,25 @@ class FPEEncyptTest(unittest.TestCase):
         pt = Decrypt(credentials, dataset_name, ct)
         return plain_text == pt
 
-    def test_encryptFPE_ALPHANUM_SSN(self):
+    def test_encrypt_ALPHANUM_SSN(self):
         self.roundTrip("ALPHANUM_SSN", ";0123456-789ABCDEF|",
                        ";!!!E7`+-ai1ykOp8r|")
 
-    def test_encryptFPE_BIRTH_DATE(self):
+    def test_encrypt_BIRTH_DATE(self):
         self.roundTrip("BIRTH_DATE", ";01\\02-1960|", ";!!\\!!-oKzi|")
 
-    def test_encryptFPE_SSN(self):
+    def test_encrypt_SSN(self):
         self.roundTrip("SSN", "-0-1-2-3-4-5-6-7-8-9-", "-0-0-0-0-1-I-L-8-j-D-")
 
-    def test_encryptFPE_UTF8_STRING_COMPLEX(self):
+    def test_encrypt_UTF8_STRING_COMPLEX(self):
         self.roundTrip("UTF8_STRING_COMPLEX", "ÑÒÓķĸĹϺϻϼϽϾÔÕϿは世界abcdefghijklmnopqrstuvwxyzこんにちÊʑʒʓËÌÍÎÏðñòóôĵĶʔʕ",
                        "ÑÒÓにΪΪΪΪΪΪ3ÔÕoeϽΫAÛMĸOZphßÚdyÌô0ÝϼPtĸTtSKにVÊϾέÛはʑʒʓÏRϼĶufÝK3MXaʔʕ")
 
-    def test_encryptFPE_UTF8_STRING_COMPLEX_2(self):
+    def test_encrypt_UTF8_STRING_COMPLEX_2(self):
         self.roundTrip("UTF8_STRING_COMPLEX", "ķĸĹϺϻϼϽϾϿは世界abcdefghijklmnopqrstuvwxyzこんにちÊËÌÍÎÏðñòóôĵĶ",
                        "にΪΪΪΪΪΪ3oeϽΫAÛMĸOZphßÚdyÌô0ÝϼPtĸTtSKにVÊϾέÛはÏRϼĶufÝK3MXa")
 
-    def test_encryptFPE_TEST_CACHING(self):
+    def test_encrypt_TEST_CACHING(self):
         try:
             creds = self.getCredentials()
 
@@ -78,40 +78,40 @@ class FPEEncyptTest(unittest.TestCase):
     # #   pass
 
     # @unittest.skip("Not implemented")
-    # def test_encryptFPE_MultipleCachedKeys(self):
+    # def test_encrypt_MultipleCachedKeys(self):
     #     try:
     #         creds = self.getCredentials()
 
     #         tweakFF1 = bytearray(b'\x39\x38\x37\x36\x35\x34\x33\x32\x31\x30')
 
-    #         # We don't give access to the clearKeyCache (FlushFFS/FlushKey) methods in the FPE library atm.
+    #         # We don't give access to the clearKeyCache (FlushDataset/FlushKey) methods in the Structured library atm.
 
     #         pass
     #     except Exception as e:
     #         print(f"****************** Exception: {e}")
     #         self.fail(e)
 
-    # # test FFS Speed skipped
+    # # test Dataset Speed skipped
     
-    def test_encryptFPE_InvalidFFS(self):
+    def test_encrypt_Invald_Dataset(self):
         creds = self.getCredentials()
 
         with self.assertRaises(Exception) as e:
-            self.cycleEncryption('ERROR_FFS', 'ABCDEFGHI', creds)
+            self.cycleEncryption('ERROR_DATASET', 'ABCDEFGHI', creds)
         
         the_exception = e.exception
         self.assertEqual(type(the_exception).__name__, 'HTTPError')
  
-    def test_encryptFPE_InvalidCredentials(self):
+    def test_encrypt_InvalidCredentials(self):
             creds = credentials('a', 'b', 'c', "https://api.ubiqsecurity.com")
 
             with self.assertRaises(Exception) as e:
-                self.cycleEncryption('ERROR_FFS', 'ABCDEFGHI', creds)
+                self.cycleEncryption('ERROR_DATASET', 'ABCDEFGHI', creds)
 
             the_exception = e.exception
             self.assertIn(type(the_exception).__name__, ['ConnectionError', 'HTTPError'])
 
-    def test_encryptFPE_Invalid_PT_CT(self):
+    def test_encrypt_Invalid_PT_CT(self):
         creds = self.getCredentials()
 
         with self.assertRaises(Exception) as e:
@@ -121,7 +121,7 @@ class FPEEncyptTest(unittest.TestCase):
         self.assertEqual(type(the_exception).__name__, 'RuntimeError')
         self.assertEqual(str(the_exception), 'invalid input character')
         
-    def test_encryptFPE_Invalid_LEN_1(self):
+    def test_encrypt_Invalid_LEN_1(self):
         creds = self.getCredentials()
 
         with self.assertRaises(Exception) as e:
@@ -132,7 +132,7 @@ class FPEEncyptTest(unittest.TestCase):
         self.assertEqual(str(the_exception), 'Input or tweak length error')
 
     ## Max Length is not enforced atm.
-    # def test_encryptFPE_Invalid_LEN_2(self):
+    # def test_encrypt_Invalid_LEN_2(self):
     #     creds = self.getCredentials()
 
     #     with self.assertRaises(Exception) as e:
@@ -142,7 +142,7 @@ class FPEEncyptTest(unittest.TestCase):
     #     self.assertEqual(type(the_exception).__name__, 'RuntimeError')
     #     self.assertEqual(str(the_exception), 'Input or tweak length error')
 
-    def test_encryptFPE_Invalid_specific_creds_1(self):
+    def test_encrypt_Invalid_specific_creds_1(self):
         creds = self.getCredentials()
         creds = credentials(
             creds.access_key_id[0:1], 
@@ -159,7 +159,7 @@ class FPEEncyptTest(unittest.TestCase):
         self.assertEqual(str(the_exception), 'HTTP Error 400: Bad Request')
 
     ## Caching only looks at PAPI/Access_Key_ID so these don't fail like they should if the def is already in cache,
-    # def test_encryptFPE_Invalid_specific_creds_2(self):
+    # def test_encrypt_Invalid_specific_creds_2(self):
     #     creds = self.getCredentials()
     #     creds = credentials(
     #         creds.access_key_id, 
@@ -176,7 +176,7 @@ class FPEEncyptTest(unittest.TestCase):
     #     self.assertEqual(str(the_exception), 'Input or tweak length error')
 
     ## Caching only looks at PAPI/Access_Key_ID so these don't fail like they should if the def is already in cache,
-    # def test_encryptFPE_Invalid_specific_creds_3(self):
+    # def test_encrypt_Invalid_specific_creds_3(self):
     #     creds = self.getCredentials()
     #     creds = credentials(
     #         creds.access_key_id, 
@@ -192,7 +192,7 @@ class FPEEncyptTest(unittest.TestCase):
     #     self.assertEqual(type(the_exception).__name__, 'RuntimeError')
     #     self.assertEqual(str(the_exception), 'Input or tweak length error')
 
-    def test_encryptFPE_Invalid_specific_creds_4(self):
+    def test_encrypt_Invalid_specific_creds_4(self):
         creds = self.getCredentials()
         creds = credentials(
             creds.access_key_id[0:1], 
@@ -207,7 +207,7 @@ class FPEEncyptTest(unittest.TestCase):
         the_exception = e.exception
         self.assertEqual(type(the_exception).__name__, 'ConnectionError')
 
-    def test_encryptFPE_Invalid_specific_creds_5(self):
+    def test_encrypt_Invalid_specific_creds_5(self):
         creds = self.getCredentials()
         creds = credentials(
             creds.access_key_id[0:1], 
@@ -222,7 +222,7 @@ class FPEEncyptTest(unittest.TestCase):
         the_exception = e.exception
         self.assertEqual(type(the_exception).__name__, 'ConnectionError')
 
-    def test_encryptFPE_Invalid_specific_creds_6(self):
+    def test_encrypt_Invalid_specific_creds_6(self):
         creds = self.getCredentials()
         creds = credentials(
             creds.access_key_id[0:1], 
@@ -236,7 +236,7 @@ class FPEEncyptTest(unittest.TestCase):
 
         self.assertIsNotNone(e.exception)
 
-    def test_encryptFPE_Invalid_keynum(self):
+    def test_encrypt_Invalid_keynum(self):
         creds = self.getCredentials()
 
         cipher = Encrypt(creds, "SSN", "0123456789", None)
@@ -247,7 +247,7 @@ class FPEEncyptTest(unittest.TestCase):
 
         self.assertIsNotNone(e.exception)
     
-    def test_encryptFPE_Error_handling_invalid_ffs(self):
+    def test_encrypt_Error_handling_invalid_dataset(self):
         creds = self.getCredentials()
 
         with self.assertRaises(Exception) as e:
