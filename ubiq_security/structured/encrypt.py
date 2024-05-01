@@ -1,19 +1,19 @@
 #/usr/bin/env python3
 
 import base64
-from ubiq_security_fpe import ff1
+from .lib import ff1
 
 from ..credentials import credentials
 
 from .common import fmtInput, strConvertRadix, encKeyNumber, fmtOutput
-from .common import fetchFFS, fetchKey, fetchCurrentKeys
+from .common import fetchDataset, fetchKey, fetchCurrentKeys
 
 class Encryption:
     def __del__(self):
         # todo: overwrite 'unwrapped_data_key'
         return
 
-    def __init__(self, creds, ffs):
+    def __init__(self, creds, dataset_name):
         if not creds.set():
             raise RuntimeError("credentials not set")
         
@@ -30,31 +30,31 @@ class Encryption:
         self._sapi = creds.secret_signing_key
         self._srsa = creds.secret_crypto_access_key
 
-        self._ffs = fetchFFS(self._host, self._papi, self._sapi, ffs)
+        self._dataset = fetchDataset(self._host, self._papi, self._sapi, dataset_name)
         self._key = fetchKey(self._host,
                              self._papi, self._sapi,
                              self._srsa,
-                             ffs)
+                             dataset_name)
 
-        if self._ffs['encryption_algorithm'] == 'FF1':
+        if self._dataset['encryption_algorithm'] == 'FF1':
             self._algo = ff1.Context(
                 self._key['unwrapped_data_key'],
-                base64.b64decode(self._ffs['tweak']),
-                self._ffs['tweak_min_len'], self._ffs['tweak_max_len'],
-                len(self._ffs['input_character_set']),
-                self._ffs['input_character_set'])
+                base64.b64decode(self._dataset['tweak']),
+                self._dataset['tweak_min_len'], self._dataset['tweak_max_len'],
+                len(self._dataset['input_character_set']),
+                self._dataset['input_character_set'])
         else:
             raise RuntimeError('unsupported algorithm: ' +
-                               self._ffs['encryption_algorithm'])
+                               self._dataset['encryption_algorithm'])
 
     def Cipher(self, pt, twk = None):
-        pth = self._ffs['passthrough']
-        ics = self._ffs['input_character_set']
-        ocs = self._ffs['output_character_set']
-        rules = self._ffs.get('passthrough_rules', [])
+        pth = self._dataset['passthrough']
+        ics = self._dataset['input_character_set']
+        ocs = self._dataset['output_character_set']
+        rules = self._dataset.get('passthrough_rules', [])
 
-        input_min = self._ffs['min_input_length']
-        input_max = self._ffs['max_input_length']
+        input_min = self._dataset['min_input_length']
+        input_max = self._dataset['max_input_length']
 
         fmt, pt, rules = fmtInput(pt, pth, ics, ocs, rules)
 
@@ -67,9 +67,9 @@ class Encryption:
         ct = strConvertRadix(ct, ics, ocs)
         ct = encKeyNumber(ct, ocs,
                           self._key['key_number'],
-                          self._ffs['msb_encoding_bits'])
+                          self._dataset['msb_encoding_bits'])
         
-        self._creds.add_event(dataset_name=self._ffs['name'], dataset_group_name="", billing_action="encrypt",
+        self._creds.add_event(dataset_name=self._dataset['name'], dataset_group_name="", billing_action="encrypt",
                 dataset_type="structured", key_number=self._key['key_number'], count=1)
         
         return fmtOutput(fmt, ct, pth, rules)
@@ -78,12 +78,12 @@ class Encryption:
         keys = fetchCurrentKeys(self._host,
                             self._papi, self._sapi,
                             self._srsa,
-                            self._ffs['name'])
+                            self._dataset['name'])
         
-        pth = self._ffs['passthrough']
-        ics = self._ffs['input_character_set']
-        ocs = self._ffs['output_character_set']
-        rules = self._ffs.get('passthrough_rules', [])
+        pth = self._dataset['passthrough']
+        ics = self._dataset['input_character_set']
+        ocs = self._dataset['output_character_set']
+        rules = self._dataset.get('passthrough_rules', [])
         
 
         fmt, pt, rules = fmtInput(pt, pth, ics, ocs, rules)
@@ -93,23 +93,23 @@ class Encryption:
         for _, (key_num, key) in enumerate(keys.items()):
             algo = ff1.Context(
                 key['unwrapped_data_key'],
-                base64.b64decode(self._ffs['tweak']),
-                self._ffs['tweak_min_len'], self._ffs['tweak_max_len'],
+                base64.b64decode(self._dataset['tweak']),
+                self._dataset['tweak_min_len'], self._dataset['tweak_max_len'],
                 len(ics),
                 ics)
             ct = algo.Encrypt(pt, twk)
             ct = strConvertRadix(ct, ics, ocs)
             ct = encKeyNumber(ct, ocs,
                           key_num,
-                          self._ffs['msb_encoding_bits'])
+                          self._dataset['msb_encoding_bits'])
             searchCipher.append(fmtOutput(fmt, ct, pth, rules))
 
         return searchCipher
 
 
 
-def Encrypt(creds, ffs, pt, twk = None):
-    return Encryption(creds, ffs).Cipher(pt, twk)
+def Encrypt(creds, dataset_name, pt, twk = None):
+    return Encryption(creds, dataset_name).Cipher(pt, twk)
 
-def EncryptForSearch(creds, ffs, pt, twk = None):
-    return Encryption(creds, ffs).CipherForSearch(pt, twk)
+def EncryptForSearch(creds, dataset_name, pt, twk = None):
+    return Encryption(creds, dataset_name).CipherForSearch(pt, twk)

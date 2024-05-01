@@ -6,9 +6,8 @@ from distutils.command.config import config
 import boto3
 import csv
 import io
-import random
 import ubiq_security as ubiq
-import ubiq_security.fpe as ubiqfpe
+import ubiq_security.structured as ubiq_structured
 
 # Prerequisite: define bucket name and file name. An example of RAW_DATA.csv exists in the etl_example folder.
 bucket_name="test-bucket"
@@ -45,10 +44,10 @@ if encrypt_fields:
         print(row['id'], row['username'])
 
         # TODO: Format Preserving Encryption, for now regular encryption.
-        row['full_name_sensitive'] = ubiqfpe.Encrypt(credentials, 'FULL_NAME_ETL', row['full_name_sensitive'])
-        row['email_sensitive'] = ubiqfpe.Encrypt(credentials, 'EMAIL_ETL', row['email_sensitive'], None)
-        row['phone_number_sensitive'] = ubiqfpe.Encrypt(credentials, 'PHONE_ETL', row['phone_number_sensitive'])
-        row['ssn_sensitive'] = ubiqfpe.Encrypt(credentials, 'SSN_ETL', row['ssn_sensitive'])
+        row['full_name_sensitive'] = ubiq_structured.Encrypt(credentials, 'FULL_NAME_ETL', row['full_name_sensitive'])
+        row['email_sensitive'] = ubiq_structured.Encrypt(credentials, 'EMAIL_ETL', row['email_sensitive'], None)
+        row['phone_number_sensitive'] = ubiq_structured.Encrypt(credentials, 'PHONE_ETL', row['phone_number_sensitive'])
+        row['ssn_sensitive'] = ubiq_structured.Encrypt(credentials, 'SSN_ETL', row['ssn_sensitive'])
         
         transformed_rows.append(list(row.values()))
 

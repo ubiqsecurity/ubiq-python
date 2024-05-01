@@ -1,9 +1,9 @@
 import unittest
 
 from ubiq_security.credentials import credentials
-from ubiq_security.fpe import Encrypt, Decrypt, EncryptForSearch
+from ubiq_security.structured import Encrypt, Decrypt, EncryptForSearch
 
-class FPEEncyptForSearchTest(unittest.TestCase):
+class StructuredEncyptForSearchTest(unittest.TestCase):
     def getCredentials(self):
         creds = credentials()
         return creds
@@ -22,19 +22,19 @@ class FPEEncyptForSearchTest(unittest.TestCase):
             pt = Decrypt(creds, dataset_name, ct)
             self.assertEqual(plain_text, pt, f'Entry in search did not decrypt properly.')
     
-    def test_encryptFPE_ALPHANUM_SSN(self):
+    def test_encrypt_ALPHANUM_SSN(self):
         self.validateSearch("ALPHANUM_SSN", ";0123456-789ABCDEF|", ";!!!E7`+-ai1ykOp8r|")
 
-    def test_encryptFPE_BIRTH_DATE(self):
+    def test_encrypt_BIRTH_DATE(self):
         self.validateSearch("BIRTH_DATE", ";01\\02-1960|", ";!!\\!!-oKzi|")
 
-    def test_encryptFPE_SSN(self):
+    def test_encrypt_SSN(self):
         self.validateSearch("SSN", "-0-1-2-3-4-5-6-7-8-9-", "-0-0-0-0-1-I-L-8-j-D-")
 
-    def test_encryptFPE_UTF8_STRING_COMPLEX(self):
+    def test_encrypt_UTF8_STRING_COMPLEX(self):
         self.validateSearch("UTF8_STRING_COMPLEX", "ÑÒÓķĸĹϺϻϼϽϾÔÕϿは世界abcdefghijklmnopqrstuvwxyzこんにちÊʑʒʓËÌÍÎÏðñòóôĵĶʔʕ", "ÑÒÓにΪΪΪΪΪΪ3ÔÕoeϽΫAÛMĸOZphßÚdyÌô0ÝϼPtĸTtSKにVÊϾέÛはʑʒʓÏRϼĶufÝK3MXaʔʕ")
 
-    def test_encryptFPE_UTF8_STRING_COMPLEX_2(self):
+    def test_encrypt_UTF8_STRING_COMPLEX_2(self):
         self.validateSearch("UTF8_STRING_COMPLEX", "ķĸĹϺϻϼϽϾϿは世界abcdefghijklmnopqrstuvwxyzこんにちÊËÌÍÎÏðñòóôĵĶ", "にΪΪΪΪΪΪ3oeϽΫAÛMĸOZphßÚdyÌô0ÝϼPtĸTtSKにVÊϾέÛはÏRϼĶufÝK3MXa")
         
 

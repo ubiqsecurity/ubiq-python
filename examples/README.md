@@ -4,7 +4,7 @@
 This sample application will demonstrate how to encrypt and decrypt data using 
 the different APIs.
 
-Provided are two sample applications. One called "ubiq_sample.py" demonstrates how to encrypt and decrypt typical data that you might encounter in your own applications. The other sample application called "ubiq_fpe_sample.py" demonstrates how to encrypt and decrypt using format preserving encryption (FPE).
+Provided are two sample applications. One called "ubiq_unstructured_sample.py" demonstrates how to encrypt and decrypt typical data that you might encounter in your own applications. The other sample application called "ubiq_structured_sample.py" demonstrates how to encrypt and decrypt using structured encryption.
 
 
 ### Documentation for ubiq_sample.py
@@ -62,31 +62,29 @@ optional arguments:
 #### Demonstrate using the simple (-s / --simple) API interface to encrypt this README.md file and write the encrypted data to /tmp/readme.enc
 
 ```sh
-python3 ubiq_sample.py -i ./README.md -o /tmp/readme.enc -e -s -c ./credentials 
+python3 ubiq_unstructured_sample.py -i ./README.md -o /tmp/readme.enc -e -s -c ./credentials 
 ```
 
 #### Demonstrate using the simple (-s / --simple) API interface to decrypt the /tmp/readme.enc file and write the decrypted output to /tmp/README.out
 
 ```sh
-python3 ubiq_sample.py -i /tmp/readme.enc -o /tmp/README.out -d -s -c ./credentials
+python3 ubiq_unstructured_sample.py -i /tmp/readme.enc -o /tmp/README.out -d -s -c ./credentials
 ```
 
 #### Demonstrate using the piecewise (-p / --piecewise) API interface to encrypt this README.md file and write the encrypted data to /tmp/readme.enc
 
 ```sh
-python3 ubiq_sample.py -i ./README.md -o /tmp/readme.enc -e -p -c ./credentials
+python3 ubiq_unstructured_sample.py -i ./README.md -o /tmp/readme.enc -e -p -c ./credentials
 ```
 
 #### Demonstrate using the piecewise (-p / --piecewise) API interface to decrypt the /tmp/readme.enc file and write the decrypted output to /tmp/README.out
 
 ```sh
-python3 ubiq_sample.py -i /tmp/readme.enc -o /tmp/README.out -d -p -c ./credentials
+python3 ubiq_unstructured_sample.py -i /tmp/readme.enc -o /tmp/README.out -d -p -c ./credentials
 ```
 
 
-### Documentation for ubiq_fpe_sample.py
-
-Format preserving encryption (FPE/eFPE) is an optionally available feature. Please contact support@ubiqsecurity.com to add this capability to your account.
+### Documentation for ubiq_structured_sample.py
 
 ## Installation
 
@@ -115,7 +113,7 @@ From within the examples directory
 
 ```
 cd examples
-python3 ubiq_fpe_sample.py -h
+python3 ubiq_structured_sample.py -h
 ```
 <pre>
 optional arguments:
@@ -129,19 +127,19 @@ optional arguments:
                         Set the file name with the API credentials (default: ~/.ubiq/credentials)
   -P PROFILE, --profile PROFILE
                         Identify the profile within the credentials file (default: default)
-  -n FFS_NAME, --ffsname FFS_NAME
-                        Set the ffs name, for example SSN.
+  -n DATASET_NAME, --datasetname DATASET_NAME
+                        Set the dataset name, for example SSN.
 </pre>
 
 
 #### Demonstrate encrypting a social security number and returning a cipher text
 
 ```sh
-python3 ubiq_fpe_sample.py -c ./credentials -n SSN -e 123-45-6789
+python3 ubiq_structured_sample.py -c ./credentials -n SSN -e 123-45-6789
 ```
 
 #### Demonstrate decrypting a social security number and returning the plain text
 
 ```sh
-python3 ubiq_fpe_sample.py -c ./credentials -n SSN -d '!!%-%J-n{/#'
+python3 ubiq_structured_sample.py -c ./credentials -n SSN -d '!!%-%J-n{/#'
 ```

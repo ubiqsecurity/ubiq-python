@@ -7,7 +7,7 @@ import requests
 import urllib
 
 from ..auth import http_auth
-from ubiq_security_fpe import ffx
+from .lib import ffx
 
 
 import cryptography.hazmat.primitives as crypto
@@ -89,11 +89,11 @@ def fmtOutput(fmt, s, pth, rules):
 
     return s
 
-def fetchFFS(host, papi, sapi, ffs):
-    if (not papi in fetchFFS.cache or
-        not ffs in fetchFFS.cache[papi]):
+def fetchDataset(host, papi, sapi, dataset_name):
+    if (not papi in fetchDataset.cache or
+        not dataset_name in fetchDataset.cache[papi]):
         url = host + 'ffs'
-        url += '?ffs_name=' + ffs
+        url += '?ffs_name=' + dataset_name
         url += '&papi=' + papi
         resp = requests.get(url, auth=http_auth(papi, sapi))
         if resp.status_code != http.HTTPStatus.OK:
@@ -101,28 +101,28 @@ def fetchFFS(host, papi, sapi, ffs):
                 url, resp.status_code,
                 http.HTTPStatus(resp.status_code).phrase,
                 resp.headers, resp.content)
-        if not papi in fetchFFS.cache:
-            fetchFFS.cache[papi] = {}
-        fetchFFS.cache[papi][ffs] = json.loads(resp.content.decode())
+        if not papi in fetchDataset.cache:
+            fetchDataset.cache[papi] = {}
+        fetchDataset.cache[papi][dataset_name] = json.loads(resp.content.decode())
 
-    return fetchFFS.cache[papi][ffs]
-fetchFFS.cache = {}
+    return fetchDataset.cache[papi][dataset_name]
+fetchDataset.cache = {}
 
-def flushFFS(papi = None, ffs = None):
+def flushDataset(papi = None, dataset_name = None):
     if papi == None:
-        fetchFFS.cache = {}
-    elif papi in fetchFFS.cache:
-        if ffs == None:
-            del fetchFFS.cache[papi]
-        elif ffs in fetchFFS.cache[papi]:
-            del fetchFFS.cache[papi][ffs]
+        fetchDataset.cache = {}
+    elif papi in fetchDataset.cache:
+        if dataset_name == None:
+            del fetchDataset.cache[papi]
+        elif dataset_name in fetchDataset.cache[papi]:
+            del fetchDataset.cache[papi][dataset_name]
 
-def fetchKey(host, papi, sapi, srsa, ffs, n = -1):
+def fetchKey(host, papi, sapi, srsa, dataset_name, n = -1):
     if (not papi in fetchKey.cache or
-        not ffs in fetchKey.cache[papi] or
-        not n in fetchKey.cache[papi][ffs]):
+        not dataset_name in fetchKey.cache[papi] or
+        not n in fetchKey.cache[papi][dataset_name]):
         url = host + 'fpe/key'
-        url += '?ffs_name=' + ffs
+        url += '?ffs_name=' + dataset_name
         url += '&papi=' + papi
         if n >= 0:
             url += '&key_number=' + str(n)
@@ -148,8 +148,8 @@ def fetchKey(host, papi, sapi, srsa, ffs, n = -1):
 
         if not papi in fetchKey.cache:
             fetchKey.cache[papi] = {}
-        if not ffs in fetchKey.cache[papi]:
-            fetchKey.cache[papi][ffs] = {}
+        if not dataset_name in fetchKey.cache[papi]:
+            fetchKey.cache[papi][dataset_name] = {}
 
         # the -1 entry points to the "current" key at the
         # server. it is cached so that the next caller that
@@ -161,23 +161,23 @@ def fetchKey(host, papi, sapi, srsa, ffs, n = -1):
         if n == -1:
             # -1 can be an index because keys are stored
             # in a dictionary, not a list
-            fetchKey.cache[papi][ffs][n] = key
+            fetchKey.cache[papi][dataset_name][n] = key
 
         # also cache the key at its "real" identifier
         n = int(key['key_number'])
-        fetchKey.cache[papi][ffs][n] = key
+        fetchKey.cache[papi][dataset_name][n] = key
 
-    return fetchKey.cache[papi][ffs][n]
+    return fetchKey.cache[papi][dataset_name][n]
 fetchKey.cache = {}
 
-def allKeysToNInCache(papi, ffs, n):
+def allKeysToNInCache(papi, dataset_name, n):
     present = True
     for i in range(0,n+1):
-        present = present and (i in fetchKey.cache[papi][ffs])
+        present = present and (i in fetchKey.cache[papi][dataset_name])
     return present
 
-def fetchAllKeys(host, papi, sapi, srsa, ffs):
-    url=f"{host}fpe/def_keys?ffs_name={ffs}&papi={papi}"
+def fetchAllKeys(host, papi, sapi, srsa, dataset_name):
+    url=f"{host}fpe/def_keys?ffs_name={dataset_name}&papi={papi}"
     resp = requests.get(url, auth=http_auth(papi, sapi))
 
     if resp.status_code != http.HTTPStatus.OK:
@@ -189,19 +189,19 @@ def fetchAllKeys(host, papi, sapi, srsa, ffs):
 
     if not papi in fetchKey.cache:
         fetchKey.cache[papi] = {}
-    if not ffs in fetchKey.cache[papi]:
-        fetchKey.cache[papi][ffs] = {}
+    if not dataset_name in fetchKey.cache[papi]:
+        fetchKey.cache[papi][dataset_name] = {}
 
     prvkey = crypto.serialization.load_pem_private_key(
-        keys[ffs]['encrypted_private_key'].encode(), srsa.encode(),
+        keys[dataset_name]['encrypted_private_key'].encode(), srsa.encode(),
         crypto_backend())
     
-    for i, enc_key in enumerate(keys[ffs]['keys']):
-        if i in fetchKey.cache[papi][ffs]:
+    for i, enc_key in enumerate(keys[dataset_name]['keys']):
+        if i in fetchKey.cache[papi][dataset_name]:
             continue
 
         key = {
-            'encrypted_private_key': keys[ffs]['encrypted_private_key'],
+            'encrypted_private_key': keys[dataset_name]['encrypted_private_key'],
             'wrapped_data_key': enc_key
         }
         key['unwrapped_data_key'] = prvkey.decrypt(
@@ -211,21 +211,21 @@ def fetchAllKeys(host, papi, sapi, srsa, ffs):
                     algorithm=crypto.hashes.SHA1()),
                 algorithm=crypto.hashes.SHA1(),
                 label=None))
-        fetchKey.cache[papi][ffs][i] = key
+        fetchKey.cache[papi][dataset_name][i] = key
 
-def fetchCurrentKeys(host, papi, sapi, srsa, ffs,):
-    fetchAllKeys(host, papi, sapi, srsa, ffs)
+def fetchCurrentKeys(host, papi, sapi, srsa, dataset_name):
+    fetchAllKeys(host, papi, sapi, srsa, dataset_name)
 
-    return {key_num: key for key_num, key in sorted(fetchKey.cache[papi][ffs].items()) if key_num not in [-1]}
+    return {key_num: key for key_num, key in sorted(fetchKey.cache[papi][dataset_name].items()) if key_num not in [-1]}
 
-def flushKey(papi = None, ffs = None, n = None):
+def flushKey(papi = None, dataset_name = None, n = None):
     if papi == None:
         fetchKey.cache = {}
     elif papi in fetchKey.cache:
-        if ffs == None:
+        if dataset_name == None:
             del fetchKey.cache[papi]
-        elif ffs in fetchKey.cache[papi]:
+        elif dataset_name in fetchKey.cache[papi]:
             if n == None:
-                del fetchKey.cache[papi][ffs]
-            elif n in fetchKey.cache[papi][ffs]:
-                del fetchKey.cache[papi][ffs][n]
+                del fetchKey.cache[papi][dataset_name]
+            elif n in fetchKey.cache[papi][dataset_name]:
+                del fetchKey.cache[papi][dataset_name][n]
