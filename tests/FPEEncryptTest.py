@@ -119,7 +119,7 @@ class FPEEncyptTest(unittest.TestCase):
 
         the_exception = e.exception
         self.assertEqual(type(the_exception).__name__, 'RuntimeError')
-        self.assertEqual(str(the_exception), 'invalid input character')
+        self.assertEqual(str(the_exception), 'Invalid input string character(s)')
         
     def test_encryptFPE_Invalid_LEN_1(self):
         creds = self.getCredentials()

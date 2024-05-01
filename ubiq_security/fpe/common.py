@@ -37,10 +37,7 @@ def fmtInput(s, pth, ics, ocs, rules = []):
                     fmt += c
                 else:
                     fmt += ocs[0]
-                    if c in ics:
-                        o += c
-                    else:
-                        raise RuntimeError('invalid input character')
+                    o += c
             trm = o
         elif(rule['type'] == 'prefix'):
             rules[idx]['buffer'] = trm[:rule['value']]
@@ -50,6 +47,10 @@ def fmtInput(s, pth, ics, ocs, rules = []):
             trm = trm[:(-1 * rule['value'])]
         else:
             raise RuntimeError('Ubiq Python Library does not support rule type "%s" at this time.'%(rule['type']))
+
+    # Validate final string contains only allowed characters.
+    if not all((c in ics) for c in trm):
+        raise RuntimeError('Invalid input string character(s)')
 
     return fmt, trm, rules
 
