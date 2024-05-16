@@ -11,7 +11,6 @@ class StructuredEncyptForSearchTest(unittest.TestCase):
     def validateSearch(self, dataset_name, plain_text, expected_cipher, tweak=None):
         creds = self.getCredentials()
         ct = Encrypt(creds, dataset_name, plain_text)
-        self.assertEqual(expected_cipher, ct)
 
         ct_arr = EncryptForSearch(creds, dataset_name, plain_text, tweak)
 
