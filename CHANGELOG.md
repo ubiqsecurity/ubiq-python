@@ -1,6 +1,6 @@
 # Changelog
 
-# 2.2.0 - TBD
+# 2.2.0 - 2024-05-29
 * Support for Partial Encryption
 * Add configuration option key_caching.encrypt - enables/disables storing keys in cache in an encrypted state
 * Combine structured encryption (fka ubiq_fpe) library into this main library.
