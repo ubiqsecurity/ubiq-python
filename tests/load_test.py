@@ -177,9 +177,12 @@ def parse_args(argv=None):  # IGNORE:C0111
         max_decrypt = args.max_decrypt
         avg_encrypt = args.avg_encrypt
         avg_decrypt = args.avg_encrypt
-
-
-        creds = ubiq.configCredentials(args.credentials, args.profile)
+        
+        env_set = os.getenv('UBIQ_ACCESS_KEY_ID',None)
+        if (env_set == None):
+            creds = ubiq.configCredentials(args.credentials, args.profile)
+        else:
+            creds = ubiq.credentials()
 
         '''
         Make sure the input file and output files can be opened for reading / writing
@@ -195,14 +198,14 @@ def parse_args(argv=None):  # IGNORE:C0111
 
     except KeyboardInterrupt:
         ### handle keyboard interrupt ###
-        return False
+        return False,'', 0,0,0,0,None
     except Exception as e:
         if DEBUG or TESTRUN:
             raise (e)
         indent = len(program_name) * " "
         sys.stderr.write(program_name + ": {0}\n".format(e))
         sys.stderr.write(indent + "  For help use --help\n")
-        return False
+        return False,'', 0,0,0,0,None
 
 def print_output(timer_dict):
     total = 0
@@ -293,10 +296,10 @@ if __name__ == "__main__":
         if valid_args:
             result = load_test(infile, max_encrypt, max_decrypt, avg_encrypt, avg_decrypt, creds)
             infile.close()
-            sys.exit(result)
+            sys.exit(0 if result else 1)
 
     except Exception as inst:
         valid_args = False
         traceback.print_exc(inst)
 
-    sys.exit(valid_args == True)
+    sys.exit(0 if valid_args == True else 1)

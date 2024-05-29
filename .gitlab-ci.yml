@@ -9,7 +9,6 @@ workflow:
 
 stages:
   - test
-  - load_test
 
 
 .tests: &test_config
@@ -25,13 +24,12 @@ stages:
     - python tests/DecryptTest.py
     - python tests/StructuredEncryptTest.py
     - python tests/StructuredEncryptForSearchTest.py
-
-## File "/usr/local/lib/python3.6/site-packages/ubiq_security_fpe/ffx.py", line 9, in <module>
-##    DEFAULT_ALPHABET: typing.Final[str] = '0123456789abcdefghijklmnopqrstuvwxyz'
-## AttributeError: module 'typing' has no attribute 'Final'
-# .tests3.6:
-#   <<: *test_config
-#   image: python:3.6
+    - echo "UBIQ_TEST_DATA_FILE $UBIQ_TEST_DATA_FILE"
+    - echo "UBIQ_MAX_AVG_ENCRYPT $UBIQ_MAX_AVG_ENCRYPT"
+    - echo "UBIQ_MAX_AVG_DECRYPT $UBIQ_MAX_AVG_DECRYPT"
+    - echo "UBIQ_MAX_TOTAL_ENCRYPT $UBIQ_MAX_TOTAL_ENCRYPT"
+    - echo "UBIQ_MAX_TOTAL_DECRYPT $UBIQ_MAX_TOTAL_DECRYPT"
+    - python tests/load_test.py -i $UBIQ_TEST_DATA_FILE -d $UBIQ_MAX_AVG_DECRYPT -e $UBIQ_MAX_AVG_ENCRYPT -D $UBIQ_MAX_TOTAL_DECRYPT -E $UBIQ_MAX_TOTAL_ENCRYPT
 
 .tests3.8:
   stage: test
@@ -56,15 +54,3 @@ test_master:
   rules:
     - if: $CI_COMMIT_REF_NAME == $CI_DEFAULT_BRANCH
   environment: master
-
-.load_test:
-  stage: load_test
-  script:
-    - echo "UBIQ_TEST_DATA_FILE $UBIQ_TEST_DATA_FILE"
-    - echo "UBIQ_MAX_AVG_ENCRYPT $UBIQ_MAX_AVG_ENCRYPT"
-    - echo "UBIQ_MAX_AVG_DECRYPT $UBIQ_MAX_AVG_DECRYPT"
-    - echo "UBIQ_MAX_TOTAL_ENCRYPT $UBIQ_MAX_TOTAL_ENCRYPT"
-    - echo "UBIQ_MAX_TOTAL_DECRYPT $UBIQ_MAX_TOTAL_DECRYPT"
-    - python tests/load_test.py -i $UBIQ_TEST_DATA_FILE -d $UBIQ_MAX_AVG_DECRYPT -e $UBIQ_MAX_AVG_ENCRYPT -D $UBIQ_MAX_TOTAL_DECRYPT -E $UBIQ_MAX_TOTAL_ENCRYPT
-  rules:
-    - if: $LOAD_TEST
