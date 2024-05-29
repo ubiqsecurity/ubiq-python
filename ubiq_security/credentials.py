@@ -111,10 +111,12 @@ class credentials(credentialsInfo):
         self.__access_key_id = (access_key_id, os.getenv('UBIQ_ACCESS_KEY_ID', access_key_id)) [access_key_id == None]
         self.__secret_signing_key = (secret_signing_key, os.getenv('UBIQ_SECRET_SIGNING_KEY', secret_signing_key)) [secret_signing_key == None]
         self.__secret_crypto_access_key = (secret_crypto_access_key, os.getenv('UBIQ_SECRET_CRYPTO_ACCESS_KEY', secret_crypto_access_key)) [secret_crypto_access_key == None]
+        self.__host = (host, os.getenv('UBIQ_SERVER', host)) [host == None]
 
         credentialsInfo.__init__(self, self.__access_key_id,
                                  self.__secret_signing_key,
-                                 self.__secret_crypto_access_key, host)
+                                 self.__secret_crypto_access_key, 
+                                 self.__host)
         
         if (not self.set()):
             if (self.__access_key_id == None or self.__access_key_id.strip() == ""):
