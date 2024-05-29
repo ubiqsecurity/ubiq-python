@@ -260,7 +260,7 @@ def load_test(infile, max_encrypt, max_decrypt, avg_encrypt, avg_decrypt, creds)
         dec_timer.stop()
 
         if i['plaintext'] != pt:
-            raise Exception('Ciphertext did not match encrypted plaintext')
+            raise Exception(f"Plaintext did not match decrypted ciphertext '{i['plaintext']}' != '{pt}'")
 
         count += 1
 

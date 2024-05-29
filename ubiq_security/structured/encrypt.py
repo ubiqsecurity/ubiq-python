@@ -51,8 +51,16 @@ class Encryption:
         pth = self._dataset['passthrough']
         ics = self._dataset['input_character_set']
         ocs = self._dataset['output_character_set']
+        rules = self._dataset.get('passthrough_rules', [])
 
-        fmt, pt = fmtInput(pt, pth, ics, ocs)
+        input_min = self._dataset['min_input_length']
+        input_max = self._dataset['max_input_length']
+
+        fmt, pt, rules = fmtInput(pt, pth, ics, ocs, rules)
+
+        input_len = len(pt)
+        if input_len < input_min or input_len > input_max:
+            raise RuntimeError('Invalid input len (%s) min: %s max %s'%(input_len, input_min, input_max))
 
         ct = self._algo.Encrypt(pt, twk)
 
@@ -64,7 +72,7 @@ class Encryption:
         self._creds.add_event(dataset_name=self._dataset['name'], dataset_group_name="", billing_action="encrypt",
                 dataset_type="structured", key_number=self._key['key_number'], count=1)
         
-        return fmtOutput(fmt, ct, pth)
+        return fmtOutput(fmt, ct, pth, rules)
     
     def CipherForSearch(self, pt, twk=None):
         keys = fetchCurrentKeys(self._host,
@@ -75,8 +83,10 @@ class Encryption:
         pth = self._dataset['passthrough']
         ics = self._dataset['input_character_set']
         ocs = self._dataset['output_character_set']
+        rules = self._dataset.get('passthrough_rules', [])
+        
 
-        fmt, pt = fmtInput(pt, pth, ics, ocs)
+        fmt, pt, rules = fmtInput(pt, pth, ics, ocs, rules)
 
 
         searchCipher = []
@@ -92,7 +102,7 @@ class Encryption:
             ct = encKeyNumber(ct, ocs,
                           key_num,
                           self._dataset['msb_encoding_bits'])
-            searchCipher.append(fmtOutput(fmt, ct, pth))
+            searchCipher.append(fmtOutput(fmt, ct, pth, rules))
 
         return searchCipher
 

@@ -6,8 +6,6 @@ Ubiq Security Platform API from applications written in the Python language.
 It includes a pre-defined set of classes that will provide simple interfaces
 to encrypt and decrypt data
 
-This library also incorporates Ubiq Structured Encryption.  Structured Encryption allows encrypting so that the output cipher text is in the same format as the original plaintext. This includes preserving special characters and control over what characters are permitted in the cipher text. For example, consider encrypting a social security number '123-45-6789'. The cipher text will maintain the dashes and look something like: 'W$+-qF-oMMV'.
-
 ## Documentation
 
 See the [Python API docs](https://dev.ubiqsecurity.com/docs/api).

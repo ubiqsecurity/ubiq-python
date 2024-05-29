@@ -37,8 +37,17 @@ class Decryption:
         pth = self._dataset['passthrough']
         ics = self._dataset['input_character_set']
         ocs = self._dataset['output_character_set']
+        rules = self._dataset.get('passthrough_rules', [])
 
-        fmt, ct = fmtInput(ct, pth, ocs, ics)
+        input_min = self._dataset['min_input_length']
+        input_max = self._dataset['max_input_length']
+        
+        fmt, ct, rules = fmtInput(ct, pth, ocs, ics, rules)
+
+        input_len = len(ct)
+        if input_len < input_min or input_len > input_max:
+            raise RuntimeError('Invalid input len (%s) min: %s max %s'%(input_len, input_min, input_max))
+
         ct, n = decKeyNumber(ct, ocs, self._dataset['msb_encoding_bits'])
         if not hasattr(self, '_key') or self._key['key_number'] != n:
             self._key = fetchKey(self._host,
@@ -59,7 +68,7 @@ class Decryption:
 
         self._creds.add_event(dataset_name=self._dataset['name'], dataset_group_name="", billing_action="decrypt",
             dataset_type="structured", key_number=n, count=1)
-        return fmtOutput(fmt, pt, pth)
+        return fmtOutput(fmt, pt, pth, rules)
 
 def Decrypt(creds, dataset_name, ct, twk = None):
     return Decryption(creds, dataset_name).Cipher(ct, twk)
