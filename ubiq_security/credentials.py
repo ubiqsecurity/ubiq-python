@@ -105,7 +105,7 @@ class configCredentials(credentialsInfo):
         if os.path.exists(credentials_file):
             self.load_config_file(credentials_file, profile)
 
-        credentialsInfo.__init__(self, self.__access_key_id , self.__secret_signing_key, self.__secret_crypto_access_key, self.__host, config_file)
+        credentialsInfo.__init__(self, self.__access_key_id , self.__secret_signing_key, self.__secret_crypto_access_key, self.__host, config_file, library_label)
 
         if (not self.set()):
             if (self.__access_key_id == None or self.__access_key_id.strip() == ""):
@@ -131,7 +131,8 @@ class credentials(credentialsInfo):
                                  self.__secret_signing_key,
                                  self.__secret_crypto_access_key, 
                                  self.__host,
-                                 config_file)
+                                 config_file,
+                                 library_label)
         
         if (not self.set()):
             if (self.__access_key_id == None or self.__access_key_id.strip() == ""):
