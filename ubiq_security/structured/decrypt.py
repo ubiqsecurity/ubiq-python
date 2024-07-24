@@ -71,4 +71,7 @@ class Decryption:
         return fmtOutput(fmt, pt, pth, rules)
 
 def Decrypt(creds, dataset_name, ct, twk = None):
-    return Decryption(creds, dataset_name).Cipher(ct, twk)
+    result = Decryption(creds, dataset_name).Cipher(ct, twk)
+    if creds.configuration.get_event_reporting_synchronous():
+        creds.process_events()
+    return result
