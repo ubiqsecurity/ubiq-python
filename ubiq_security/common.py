@@ -11,6 +11,7 @@ from .configuration import ubiqConfiguration
 
 import cryptography.exceptions as crypto_exceptions
 import cryptography.hazmat.primitives as crypto
+import cryptography.hazmat.primitives.serialization as serialize 
 from cryptography.hazmat.backends import default_backend as crypto_backend
 
 
@@ -74,7 +75,7 @@ def fetchDecryptKey(host, papi, sapi, srsa, datakey, client_id, alg):
     else:
         # decrypt the client's private key (sent
         # by the server)
-        prvkey = crypto.serialization.load_pem_private_key(
+        prvkey = serialize.load_pem_private_key(
             key['encrypted_private_key'].encode('utf-8'),
             srsa.encode('utf-8'),
             crypto_backend())
