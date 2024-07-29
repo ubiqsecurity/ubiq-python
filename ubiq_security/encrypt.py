@@ -8,6 +8,7 @@ import struct
 import urllib.error
 
 import cryptography.hazmat.primitives as crypto
+import cryptography.hazmat.primitives.serialization as serialize 
 from cryptography.hazmat.backends import default_backend as crypto_backend
 
 from . import UBIQ_HOST
@@ -111,7 +112,7 @@ class encryption:
         # decrypt the client's private key. if the decryption fails,
         # the function raises a ValueError which is propagated up.
         #
-        prvkey = crypto.serialization.load_pem_private_key(
+        prvkey = serialize.load_pem_private_key(
             content['encrypted_private_key'].encode(
                 'utf-8'), creds.secret_crypto_access_key.encode('utf-8'),
             crypto_backend())
