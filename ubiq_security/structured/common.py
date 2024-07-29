@@ -11,6 +11,7 @@ from .lib import ffx
 
 
 import cryptography.hazmat.primitives as crypto
+import cryptography.hazmat.primitives.serialization as serialize 
 from cryptography.hazmat.backends import default_backend as crypto_backend
 
 def strConvertRadix(s, ics, ocs):
@@ -134,7 +135,7 @@ def fetchKey(host, papi, sapi, srsa, dataset_name, n = -1):
                 resp.headers, resp.content)
         key = json.loads(resp.content.decode())
 
-        prvkey = crypto.serialization.load_pem_private_key(
+        prvkey = serialize.load_pem_private_key(
             key['encrypted_private_key'].encode(), srsa.encode(),
             crypto_backend())
 
@@ -192,7 +193,7 @@ def fetchAllKeys(host, papi, sapi, srsa, dataset_name):
     if not dataset_name in fetchKey.cache[papi]:
         fetchKey.cache[papi][dataset_name] = {}
 
-    prvkey = crypto.serialization.load_pem_private_key(
+    prvkey = serialize.load_pem_private_key(
         keys[dataset_name]['encrypted_private_key'].encode(), srsa.encode(),
         crypto_backend())
     
