@@ -1,7 +1,10 @@
 # Changelog
 
-# 2.2.1 - 2024-07-20
+# 2.2.2 - 2024-07-30
 * Added synchronous event processor 
+
+# 2.2.1 - 2024-07-29
+* Updated key decryption & library requirements
 
 # 2.2.0 - 2024-05-29
 * Support for Partial Encryption
