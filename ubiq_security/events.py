@@ -95,7 +95,7 @@ class events:
             key = get_key(api_key, dataset_name, dataset_group_name,
                          billing_action, dataset_type, key_number, self.user_defined)
             current_count = events.events_dict.get(key, event(api_key, dataset_name, dataset_group_name,
-                                                           billing_action, dataset_type, key_number, 0, self.user_defined, self.library))
+                                                           billing_action, dataset_type, key_number, 0, self.user_defined))
             current_count.increment_count(count)
             events.events_dict.update({key: current_count})
         except Exception as e:
