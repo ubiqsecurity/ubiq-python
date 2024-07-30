@@ -153,4 +153,14 @@ class ubiqConfiguration(configInfo):
         else:
             self.set_defaults()
 
-        configInfo.__init__(self, self.__event_reporting_wake_interval , self.__event_reporting_minimum_count, self.__event_reporting_flush_interval, self.__event_reporting_trap_exceptions, self.__event_reporting_timestamp_granularity, self.__event_reporting_synchronous, self.__logging_verbose, self.__key_caching_unstructured, self.__key_caching_encrypt)
+        configInfo.__init__(
+            self, 
+            self.__event_reporting_wake_interval, 
+            self.__event_reporting_minimum_count,
+            self.__event_reporting_flush_interval,
+            self.__event_reporting_trap_exceptions,
+            self.__event_reporting_timestamp_granularity,
+            self.__event_reporting_synchronous,
+            self.__logging_verbose,
+            self.__key_caching_unstructured,
+            self.__key_caching_encrypt)
