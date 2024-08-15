@@ -1,14 +1,21 @@
 # Ubiq Security Python Library
 
+[![PyPI version](https://img.shields.io/pypi/v/ubiq-security.svg)](https://pypi.org/project/ubiq-security/)
 
 The Ubiq Security Python library provides convenient interaction with the
 Ubiq Security Platform API from applications written in the Python language.
 It includes a pre-defined set of classes that will provide simple interfaces
 to encrypt and decrypt data
 
+> This repository is hosted at [Gitlab][repository] and mirrored elsewhere.
+>
+> To contribute or report an issue, please make requests there.
+
 ## Documentation
 
-See the [Python API docs](https://dev.ubiqsecurity.com/docs/api).
+See the [Python API docs][apidocs].
+
+You can improve it by sending pull requests to [this repository][repository].
 
 ## Installation
 
@@ -355,7 +362,18 @@ The <b>key_caching</b> section contains values to control how and when keys are 
 }
 ```
 
+| Status Code | Meaning | Solution |
+|---|---|---|
+| 400 | Bad Request | Check name of datasets and credentials are complete. |
+| 401 | Authentication issue | Check you have the correct API keys, and it has access to the datasets you are using.  Check dataset name. |
+| 426 | Upgrade Required | You are using an out of date version of the library, or are trying to use newer features not supported by the library you are using.  Update the library and try again.
+| 429 | Rate Limited | You are performing operations too quickly. Either slow down, or contact support@ubiqsecurity.com to increase your limits. | 
+| 500 | Internal Server Error | Something went wrong. Contact support if this persists.  | 
+| 504 | Internal Error | Possible API key issue.  Check credentials or contact support.  | 
+
+
 
 [dashboard]:https://dashboard.ubiqsecurity.com/
 [credentials]:https://dev.ubiqsecurity.com/docs/how-to-create-api-keys
-
+[apidocs]:https://dev.ubiqsecurity.com/docs/api
+[repository]:https://gitlab.com/ubiqsecurity/ubiq-python
