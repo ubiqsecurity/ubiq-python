@@ -188,13 +188,23 @@ def parse_args(argv=None):  # IGNORE:C0111
         Make sure the input file and output files can be opened for reading / writing
         '''
 
+        infiles = []
+
         try:
-            infile = open(args.infile, "rb")
+            if os.path.exists(args.infile):
+                if os.path.isdir(args.infile):
+                    dirfiles = [f for f in os.listdir(args.infile) if os.path.isfile(os.path.join(args.infile, f))]
+                    print(dirfiles)
+                    infiles = list(map(lambda x: open(os.path.join(args.infile, x)), dirfiles))
+                    pass
+                elif os.path.isfile(args.infile):
+                    f = open(args.infile, "rb")
+                    infiles.append(f)
         except Exception as e:
             raise CLIError(
-                "Unable to open input file '{0}' for reading.  Check path or access rights.".format(args.infile))
+                "Unable to open input file '{0}' for reading.  Check path or access rights. {1} ".format(args.infile, e))
 
-        return True, infile, max_encrypt, max_decrypt, avg_encrypt, avg_decrypt, creds
+        return True, infiles, max_encrypt, max_decrypt, avg_encrypt, avg_decrypt, creds
 
     except KeyboardInterrupt:
         ### handle keyboard interrupt ###
@@ -234,38 +244,39 @@ def evaluate_threshold(threshold, reality, label):
         return False
     
 
-def load_test(infile, max_encrypt, max_decrypt, avg_encrypt, avg_decrypt, creds):
+def load_test(infiles, max_encrypt, max_decrypt, avg_encrypt, avg_decrypt, creds):
     enc_datasets = {}
     dec_datasets = {}
-    data = json.load(infile)
 
     count = 0
-    for i in data:
-        dataset_name = i['dataset']
+    for file in infiles:
+        data = json.load(file)
+        for i in data:
+            dataset_name = i['dataset']
 
-        # Prime the cache
-        if(dataset_name not in enc_datasets):
-            ubiq_structured.Encrypt(creds, dataset_name, i['plaintext'])
-            ubiq_structured.Decrypt(creds, dataset_name, i['ciphertext'])
-        
-        enc_timer = enc_datasets.setdefault(dataset_name, Timer())
-        dec_timer = dec_datasets.setdefault(dataset_name, Timer())
+            # Prime the cache
+            if(dataset_name not in enc_datasets):
+                ubiq_structured.Encrypt(creds, dataset_name, i['plaintext'])
+                ubiq_structured.Decrypt(creds, dataset_name, i['ciphertext'])
+            
+            enc_timer = enc_datasets.setdefault(dataset_name, Timer())
+            dec_timer = dec_datasets.setdefault(dataset_name, Timer())
 
-        enc_timer.start()
-        ct = ubiq_structured.Encrypt(creds, dataset_name, i['plaintext'])
-        enc_timer.stop()
+            enc_timer.start()
+            ct = ubiq_structured.Encrypt(creds, dataset_name, i['plaintext'])
+            enc_timer.stop()
 
-        if i['ciphertext'] != ct:
-            raise Exception(f"Ciphertext did not match encrypted plaintext '{i['ciphertext']}' != '{ct}'")
-        
-        dec_timer.start()
-        pt = ubiq_structured.Decrypt(creds, dataset_name, i['ciphertext'])
-        dec_timer.stop()
+            if i['ciphertext'] != ct:
+                raise Exception(f"Ciphertext did not match encrypted plaintext '{i['ciphertext']}' != '{ct}'")
+            
+            dec_timer.start()
+            pt = ubiq_structured.Decrypt(creds, dataset_name, i['ciphertext'])
+            dec_timer.stop()
 
-        if i['plaintext'] != pt:
-            raise Exception(f"Plaintext did not match decrypted ciphertext '{i['plaintext']}' != '{pt}'")
+            if i['plaintext'] != pt:
+                raise Exception(f"Plaintext did not match decrypted ciphertext '{i['plaintext']}' != '{pt}'")
 
-        count += 1
+            count += 1
 
 
     print(f'Encrypt records count: {count}. Times in (microseconds)')
@@ -289,13 +300,14 @@ if __name__ == "__main__":
         # Parse the args and return the necessary information.  An error during
         # parsing or testing the input / output files will result in valid_args
         # being false which will prevent commands from being executed.
-        valid_args, infile, max_encrypt, max_decrypt, avg_encrypt, avg_decrypt, creds = parse_args()
+        valid_args, infiles, max_encrypt, max_decrypt, avg_encrypt, avg_decrypt, creds = parse_args()
 
         # If the arguments were valid, then process the encrypt or decrypt and
         # use either the simple or piecewise APIs
         if valid_args:
-            result = load_test(infile, max_encrypt, max_decrypt, avg_encrypt, avg_decrypt, creds)
-            infile.close()
+            result = load_test(infiles, max_encrypt, max_decrypt, avg_encrypt, avg_decrypt, creds)
+            for f in infiles:
+                f.close()
             sys.exit(0 if result else 1)
 
     except Exception as inst:
