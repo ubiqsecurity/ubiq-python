@@ -25,3 +25,4 @@ swig==4.2.1
     # via ubiq-security (setup.py)
 urllib3==2.2.2
     # via requests
+zipp>=3.19.1 # not directly required, pinned by Snyk to avoid a vulnerability
