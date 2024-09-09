@@ -273,4 +273,7 @@ def decrypt(creds, data):
         the entire cipher text that can be passed to the decrypt function
     """
     dec = decryption(creds)
-    return dec.begin() + dec.update(data) + dec.end()
+    result = dec.begin() + dec.update(data) + dec.end()
+    if creds.configuration.get_event_reporting_synchronous():
+        creds.process_events()
+    return result

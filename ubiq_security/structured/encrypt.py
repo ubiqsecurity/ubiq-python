@@ -109,7 +109,13 @@ class Encryption:
 
 
 def Encrypt(creds, dataset_name, pt, twk = None):
-    return Encryption(creds, dataset_name).Cipher(pt, twk)
+    results = Encryption(creds, dataset_name).Cipher(pt, twk)
+    if creds.configuration.get_event_reporting_synchronous():
+        creds.process_events()
+    return results
 
 def EncryptForSearch(creds, dataset_name, pt, twk = None):
-    return Encryption(creds, dataset_name).CipherForSearch(pt, twk)
+    result = Encryption(creds, dataset_name).CipherForSearch(pt, twk)
+    if creds.configuration.get_event_reporting_synchronous():
+        creds.process_events()
+    return result

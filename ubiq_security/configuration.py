@@ -35,12 +35,13 @@ def get_timestamp_granularity(value):
 
 class configInfo:
 
-    def __init__(self, event_reporting_wake_interval, event_reporting_minimum_count, event_reporting_flush_interval, event_reporting_trap_exceptions, event_reporting_timestamp_granularity, logging_verbose, key_caching_unstructured, key_caching_encrypt):
+    def __init__(self, event_reporting_wake_interval, event_reporting_minimum_count, event_reporting_flush_interval, event_reporting_trap_exceptions, event_reporting_timestamp_granularity, event_reporting_synchronous, logging_verbose, key_caching_unstructured, key_caching_encrypt):
         self.__event_reporting_wake_interval = event_reporting_wake_interval
         self.__event_reporting_minimum_count = event_reporting_minimum_count
         self.__event_reporting_flush_interval = event_reporting_flush_interval
         self.__event_reporting_trap_exceptions = event_reporting_trap_exceptions
         self.__event_reporting_timestamp_granularity = event_reporting_timestamp_granularity
+        self.__event_reporting_synchronous = event_reporting_synchronous
         self.__logging_verbose = logging_verbose
         self.__key_caching_unstructured = key_caching_unstructured
         self.__key_caching_encrypt = key_caching_encrypt
@@ -64,6 +65,10 @@ class configInfo:
     def get_event_reporting_timestamp_granularity(self):
         return self.__event_reporting_timestamp_granularity
     event_reporting_timestamp_granularity = property(get_event_reporting_timestamp_granularity)
+
+    def get_event_reporting_synchronous(self):
+        return self.__event_reporting_synchronous
+    event_reporting_synchronous = property(get_event_reporting_synchronous)
     
     def get_logging_verbose(self):
         return self.__logging_verbose
@@ -101,6 +106,8 @@ class ubiqConfiguration(configInfo):
                         self.__event_reporting_trap_exceptions = config['event_reporting']['trap_exceptions']
                     if 'timestamp_granularity' in config['event_reporting']:
                         self.__event_reporting_timestamp_granularity = get_timestamp_granularity(config['event_reporting']['timestamp_granularity'])
+                    if 'synchronous' in config['event_reporting']:
+                        self.__event_reporting_synchronous = config['event_reporting']['synchronous']
                 if 'logging' in config:
                     if 'verbose' in config['logging']:
                         self.__logging_verbose = config['logging']['verbose']
@@ -119,6 +126,7 @@ class ubiqConfiguration(configInfo):
         self.__event_reporting_flush_interval = 90
         self.__event_reporting_trap_exceptions = False
         self.__event_reporting_timestamp_granularity = TimestampGranularity.MICROS
+        self.__event_reporting_synchronous = False
         self.__logging_verbose = False
         self.__key_caching_unstructured = True
         self.__key_caching_encrypt = False
@@ -130,6 +138,7 @@ class ubiqConfiguration(configInfo):
         self.__event_reporting_flush_interval = None
         self.__event_reporting_trap_exceptions = None
         self.__event_reporting_timestamp_granularity = None
+        self.__event_reporting_synchronous = None
         self.__logging_verbose = None
         self.__key_caching_unstructured = None
         self.__key_caching_encrypt = None
@@ -144,4 +153,14 @@ class ubiqConfiguration(configInfo):
         else:
             self.set_defaults()
 
-        configInfo.__init__(self, self.__event_reporting_wake_interval , self.__event_reporting_minimum_count, self.__event_reporting_flush_interval, self.__event_reporting_trap_exceptions, self.__event_reporting_timestamp_granularity, self.__logging_verbose, self.__key_caching_unstructured, self.__key_caching_encrypt)
+        configInfo.__init__(
+            self, 
+            self.__event_reporting_wake_interval, 
+            self.__event_reporting_minimum_count,
+            self.__event_reporting_flush_interval,
+            self.__event_reporting_trap_exceptions,
+            self.__event_reporting_timestamp_granularity,
+            self.__event_reporting_synchronous,
+            self.__logging_verbose,
+            self.__key_caching_unstructured,
+            self.__key_caching_encrypt)
