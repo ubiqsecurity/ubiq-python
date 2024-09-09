@@ -51,7 +51,7 @@ class event:
         self.last_call_timestamp = datetime.now(timezone.utc)
         return self.count
 
-    def serialize(self, timestampGranularity):
+    def serialize(self, timestampGranularity, library):
         return {
             'datasets': self.dataset_name,
             'dataset_groups': self.dataset_group_name,
@@ -60,21 +60,19 @@ class event:
             'count': self.count,
             'key_number': self.key_number,
             'action': self.billing_action,
-            'product': 'ubiq-python',
+            'product': library,
             'product_version': VERSION,
-            'user-agent': 'ubiq-python/' + VERSION,
+            'user-agent': f'{library}/{VERSION}',
             'api_version': 'V3',
             'last_call_timestamp': format_timestamp(self.last_call_timestamp, timestampGranularity),
             'first_call_timestamp': format_timestamp(self.first_call_timestamp, timestampGranularity),
             'user_defined': self.user_defined
         }
 
-
 class events:
-    def __init__(self, creds, config):
-        self.events_dict = {}
+    events_dict = {}
+    def __init__(self, creds, config, library = None):
         self.lock = threading.Lock()
-        self.count = 0
 
         self.config = config
 
@@ -85,6 +83,10 @@ class events:
         self._papi = creds.access_key_id
         self._sapi = creds.secret_signing_key
 
+        self.library = 'ubiq-python'
+        if library:
+            self.library = library
+
         self.user_defined = {}
 
     def add_event(self, api_key, dataset_name, dataset_group_name, billing_action, dataset_type, key_number, count):
@@ -92,21 +94,21 @@ class events:
         try:
             key = get_key(api_key, dataset_name, dataset_group_name,
                          billing_action, dataset_type, key_number, self.user_defined)
-            current_count = self.events_dict.get(key, event(api_key, dataset_name, dataset_group_name,
+            current_count = events.events_dict.get(key, event(api_key, dataset_name, dataset_group_name,
                                                            billing_action, dataset_type, key_number, 0, self.user_defined))
             current_count.increment_count(count)
-            self.events_dict.update({key: current_count})
-            self.count += count
+            events.events_dict.update({key: current_count})
         except Exception as e:
             self.handle_exception(e)
         finally:
             self.lock.release()
 
     def list_events(self):
-        return list(map(lambda e: e.serialize(self.config.get_event_reporting_timestamp_granularity()), self.events_dict.values()))
+        return list(map(lambda e: e.serialize(self.config.get_event_reporting_timestamp_granularity(), self.library), events.events_dict.values()))
     
     def get_events_count(self):
-        return self.count
+        count = sum(list(map(lambda e: e.count, events.events_dict.values())))
+        return count
 
     def add_user_defined_metadata(self, data):
         if type(data) != str:
@@ -122,20 +124,19 @@ class events:
             self.handle_exception(Exception('User defined Metadata must be a valid Json object'))
     
     def process_events(self):
-        if (self.get_events_count() == 0 or len(self.events_dict) == 0):
+        if (self.get_events_count() == 0 or len(events.events_dict) == 0):
             if self.config.get_logging_verbose():
                 print('No events, skipping processing.')
             return
         
         if self.config.get_logging_verbose():
-            print(f'Processing {self.count} events')
+            print(f'Processing {self.get_events_count()} events')
         
         self.lock.acquire()
 
         try:
             usage = json.dumps({'usage': self.list_events()})
-            self.events_dict = {}
-            self.count = 0
+            events.events_dict = {}
 
         except Exception as e:
             self.handle_exception(e)
@@ -161,8 +162,6 @@ class events:
             pass
         else:
             raise
-        
-
 
 class eventsProcessor:
     def __init__(self, configuration, events):
@@ -208,4 +207,21 @@ class eventsProcessor:
         self.events.process_events()
     
     def __del__(self):
-        self.graceful_close()
+        self.graceful_close() 
+
+class syncEventsProcessor:
+    def __init__(self, configuration, events):
+        self.config = configuration
+        self.events = events
+
+        self.flush_interval = self.config.get_event_reporting_flush_interval()
+        self.next_flush = time.time() + self.flush_interval
+
+    def process(self):
+        if time.time() >= self.next_flush or self.events.get_events_count() >= self.config.get_event_reporting_minimum_count():
+            count = self.events.get_events_count()
+            self.events.process_events()
+            self.next_flush = time.time() + self.flush_interval
+            return f"Processed {count} events"
+        else: 
+            return f"No events processed. Count: {self.events.get_events_count()} Next flush: {self.next_flush}"

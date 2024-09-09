@@ -230,4 +230,7 @@ def encrypt(creds, data):
         the entire cipher text that can be passed to the decrypt function
     """
     enc = encryption(creds, 1)
-    return enc.begin() + enc.update(data) + enc.end()
+    result = enc.begin() + enc.update(data) + enc.end()
+    if creds.configuration.get_event_reporting_synchronous():
+        creds.process_events()
+    return result
