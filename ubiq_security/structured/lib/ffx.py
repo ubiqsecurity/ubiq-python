@@ -4,7 +4,24 @@ import math
 import sys
 import typing
 
-from M2Crypto import EVP
+VALID_M2CRYPTO_VERSIONS = ['0.42.0', '0.41.0']    
+from importlib.metadata import version, PackageNotFoundError
+class InvalidLibraryVersionException(Exception):
+    pass
+     
+# Check if M2Crypto on system. (Faster, but possible compatibility issues.)
+try:
+    m2_ver = version('M2Crypto')
+    if m2_ver in VALID_M2CRYPTO_VERSIONS:
+        from M2Crypto import EVP
+        M2CRYPTO = True
+    else:
+        print(f'Version {m2_ver} is not supported by ubiq_security for Python. Defaulting to Cryptography.')
+        raise InvalidLibraryVersionException()
+except (ImportError, PackageNotFoundError, InvalidLibraryVersionException) as e :
+    import cryptography.hazmat.primitives.ciphers as crypto
+    M2CRYPTO = False
+
 
 DEFAULT_ALPHABET: typing.Final[str] = '0123456789abcdefghijklmnopqrstuvwxyz'
 
@@ -65,9 +82,13 @@ class Context:
                 'Plaintext length must be a multiple of ' +
                 str(BLKSZ))
 
-        cipher = EVP.Cipher(alg=self.alg, key=self.key, iv=bytearray(16), op=1)
-        dst = cipher.update(buf)  
-
+        if M2CRYPTO:
+            cipher = EVP.Cipher(alg=self.alg, key=self.key, iv=bytearray(16), op=1)
+            dst = cipher.update(buf)
+        else:
+            cipher = crypto.Cipher(crypto.algorithms.AES(self.key), crypto.modes.CBC(bytearray(16))).encryptor()
+            dst = cipher.update(buf) + cipher.finalize()
+        
         return dst[-BLKSZ:]
 
     def Ciph(self, buf):
