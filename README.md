@@ -19,7 +19,7 @@ You can improve it by sending pull requests to [this repository][repository].
 
 ## Installation
 
-#### Using the package manager:
+### Using the package manager:
 You may want to make sure you are running the latest version of pip3 by
 first executing
 ```sh
@@ -33,7 +33,7 @@ pip3 install --upgrade ubiq-security
 ```
 
 
-#### Installing from source:
+### Installing from source:
 From within the cloned git repository directory, Install from source with:
 
 
@@ -44,14 +44,23 @@ python3 setup.py install
 ```
 You may need to run the python3 commands above using sudo.
 
-The Ubiq Security libraries are dependent on M2Crypto which has specific requirements as well which varies depending upon your actual environment.  If you encounter problems installing the Ubiq Security libraries, please see [M2Crypto](https://gitlab.com/m2crypto/m2crypto/-/blob/master/INSTALL.rst) for the latest notes and instructions.
+#### M2Crypto
 
+The Ubiq Security python library has support for M2Crypto for faster Structured encryption/decryption. The library supports either versions `0.41.0` or `0.42.0`. Run the following commands additionally to install it:
+
+```shell
+pip install m2crypto==0.42.0 six==1.16.0 swig==4.2.1
+```
+
+M2Crypto has specific requirements as well which varies depending upon your actual environment.  If you encounter problems installing the Ubiq Security libraries, please see [M2Crypto](https://gitlab.com/m2crypto/m2crypto/-/blob/master/INSTALL.rst) for the latest notes and instructions.
+
+In the event you are unable to use M2Crypto, the library will fall back on [pyca/cryptography](https://cryptography.io/en/latest/) which is already used for Unstructured encryption. This will result in the same encrypted data with no loss, but at a slightly slower speed.
 
 ### Requirements
 
 -   Python 3.5+
 
-## Usage
+## Ubiq Unstructured Encryption
 
 The library needs to be configured with your account credentials which is
 available in your [Ubiq Dashboard][dashboard] [credentials][credentials].   The credentials can be
@@ -87,15 +96,12 @@ credentials = ubiq.credentials()
 credentials = ubiq.credentials(access_key_id = "...", secret_signing_key = "...", secret_crypto_access_key = "...")
 ```
 
-
-
 ### Handling exceptions
 
 Unsuccessful requests raise exceptions. The class of the exception will reflect
 the sort of error that occurred. Please see the [Api Reference](https://dev.ubiqsecurity.com/docs/api#exceptions)
 for a description of the error classes you should handle, and for information on 
 how to inspect these errors.
-
 
 ### Encrypt a simple block of data
 
@@ -195,15 +201,36 @@ BLOCK_SIZE = 1024 * 1024
     plaintext_data += decryption.end()
 
 ```
+
+### Encrypt and Decrypt with Reuse
+
+To reuse the encryption/decryption objects, initialize them with the credentials object and store them in a variable. Encryption takes an extra parameter, the number of separate encryptions the caller wishes to perform with the key. This number may be limited by the server. 
+
+```python
+encryptor = ubiq.encryption(credentials, 6)
+decryptor = ubiq.decryption(credentials)
+
+raw_data = ["alligator","otter","eagle owl","armadillo","dormouse","ground hog"]
+encrypted_data = []
+
+for animal in raw_data:
+  enc = encryptor.begin() + encryptor.update(animal.encode()) + encryptor.end()
+  encrypted_data.append(enc)
+
+for enc_data in encrypted_data:
+  decrypted = decryptor.begin() + decryptor.update(enc_data) + decryptor.end()
+  print(decrypted.decode('UTF-8'))
+```
+
 ## Ubiq Structured Encryption
 
 This library incorporates Ubiq Structured Encryption.
 
-## Requirements
+### Requirements
 
 -   Please follow the same requirements as described above for the non-structured functionality.
 
-## Usage
+### Usage
 
 You will need to obtain account credentials in the same way as described above for conventional encryption/decryption. When
 you do this in your [Ubiq Dashboard][dashboard] [credentials][credentials], you'll need to enable access to structured datasets.
@@ -218,6 +245,9 @@ import ubiq_security as ubiq
 import ubiq_security.structured as ubiq_structured
 ```
 
+### Caching
+
+When performing encryption/decryption, keys are retrieved from the Ubiq API. To speed up peformance and reduce the number of calls to the API, keys are stored in a cache within the Credentials object. It is recommended to reuse the credentials object instead of reinstantiating it unless necessary to maintain a faster runtime.
 
 ### Encrypt a social security text field - simple interface
 Pass credentials, the name of a structured dataset, and data into the encryption function.
@@ -361,6 +391,10 @@ The <b>key_caching</b> section contains values to control how and when keys are 
   }
 }
 ```
+
+## Ubiq API Error Reference
+
+Occasionally, you may encounter issues when interacting with the Ubiq API. 
 
 | Status Code | Meaning | Solution |
 |---|---|---|

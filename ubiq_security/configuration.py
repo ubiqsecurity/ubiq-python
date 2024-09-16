@@ -4,6 +4,8 @@ import os
 import json
 from enum import Enum
 
+import importlib.util
+
 class TimestampGranularity(Enum):
     MICROS = 1
     MILLIS = 2
@@ -164,3 +166,9 @@ class ubiqConfiguration(configInfo):
             self.__logging_verbose,
             self.__key_caching_unstructured,
             self.__key_caching_encrypt)
+        
+        # If verbose, warn user if M2Crypto will not be used.
+        if self.__logging_verbose:
+            # Package name is case-sensitive.
+            if importlib.util.find_spec('M2Crypto') is None:
+                print('M2Crypto not found on system. Defaulting to Cryptography (slower, but still functional).')

@@ -33,9 +33,13 @@ def fetchDecryptKey(host, papi, sapi, srsa, datakey, client_id, alg):
                 }).encode('utf-8'),
             auth=http_auth(papi, sapi))
         if response.status_code != http.HTTPStatus.OK:
+            try:
+                response_json = response.json()
+            except JSONDecodeError:
+                response_json = {}
             raise urllib.error.HTTPError(
                 url, response.status_code,
-                http.HTTPStatus(response.status_code).phrase,
+                response_json.get('message', http.HTTPStatus(response.status_code).phrase),
                 response.headers, response.content)
 
         content = json.loads(response.content.decode('utf-8'))
