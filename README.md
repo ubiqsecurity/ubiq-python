@@ -373,7 +373,14 @@ The <b>event_reporting</b> section contains values to control how often the usag
 The <b>key_caching</b> section contains values to control how and when keys are cached.
 
 - <b>unstructured</b> indicates whether keys will be cached when doing unstructured decryption. (default: true)
+- <b>unstructured</b> indicates whether keys will be cached when doing structured decryption. (default: true)
 - <b>encrypt</b> indicates if keys should be stored encrypted. If keys are encrypted, they will be harder to access via memory, but require them to be decrypted with each use. (default: false)
+- <b>ttl_seconds</b> how many seconds before cache entries should expire and be re-retrieved (default: true)
+
+#### Logging
+The <b>logging</b> section contains values to control logging levels.
+
+- <b>verbose</b> enables and disables logging output like event processing and caching.
 
 
 ```json
@@ -387,7 +394,12 @@ The <b>key_caching</b> section contains values to control how and when keys are 
   },
   "key_caching":{
     "unstructured": true,
-    "encrypt": false
+    "structured": true,
+    "encrypt": false,
+    "ttl_seconds": 1800
+  },
+  "logging": {
+    "verbose": true
   }
 }
 ```

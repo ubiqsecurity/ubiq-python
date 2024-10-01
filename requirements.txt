@@ -20,3 +20,5 @@ idna==3.7
     # via requests
 urllib3==2.2.2
     # via requests
+
+cachetools==5.5.0

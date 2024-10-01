@@ -8,11 +8,12 @@ import urllib
 
 from ..auth import http_auth
 from .lib import ffx
-
+from ..caching import encryptable_keycache, config_cache, decrypt_key, CONFIG
 
 import cryptography.hazmat.primitives as crypto
 import cryptography.hazmat.primitives.serialization as serialize 
 from cryptography.hazmat.backends import default_backend as crypto_backend
+
 
 def strConvertRadix(s, ics, ocs):
     return ffx.NumberToString(len(ocs), ocs,
@@ -90,86 +91,45 @@ def fmtOutput(fmt, s, pth, rules):
 
     return s
 
+@config_cache(maxsize=100, ttl=CONFIG.get_key_caching_ttl_seconds(), enable_cache=CONFIG.get_key_caching_structured())
 def fetchDataset(host, papi, sapi, dataset_name):
-    if (not papi in fetchDataset.cache or
-        not dataset_name in fetchDataset.cache[papi]):
-        url = host + 'ffs'
-        url += '?ffs_name=' + dataset_name
-        url += '&papi=' + papi
-        resp = requests.get(url, auth=http_auth(papi, sapi))
-        if resp.status_code != http.HTTPStatus.OK:
-            raise urllib.error.HTTPError(
-                url, resp.status_code,
-                http.HTTPStatus(resp.status_code).phrase,
-                resp.headers, resp.content)
-        if not papi in fetchDataset.cache:
-            fetchDataset.cache[papi] = {}
-        fetchDataset.cache[papi][dataset_name] = json.loads(resp.content.decode())
+    url = host + 'ffs'
+    url += '?ffs_name=' + dataset_name
+    url += '&papi=' + papi
+    resp = requests.get(url, auth=http_auth(papi, sapi))
+    if resp.status_code != http.HTTPStatus.OK:
+        raise urllib.error.HTTPError(
+            url, resp.status_code,
+            http.HTTPStatus(resp.status_code).phrase,
+            resp.headers, resp.content)
 
-    return fetchDataset.cache[papi][dataset_name]
-fetchDataset.cache = {}
+    return json.loads(resp.content.decode())
 
 def flushDataset(papi = None, dataset_name = None):
-    if papi == None:
-        fetchDataset.cache = {}
-    elif papi in fetchDataset.cache:
-        if dataset_name == None:
-            del fetchDataset.cache[papi]
-        elif dataset_name in fetchDataset.cache[papi]:
-            del fetchDataset.cache[papi][dataset_name]
+    # deprecated with new cache tool.
+    # use fetchDataset.cache_clear() instead to nuke the cache.
+    if hasattr(fetchDataset, 'cache'):
+        fetchDataset.cache.clear_cache()
+    pass
 
+@encryptable_keycache(maxsize=100, ttl=CONFIG.get_key_caching_ttl_seconds(), enable_cache=CONFIG.get_key_caching_structured(), encrypted=CONFIG.get_key_caching_encrypt())
 def fetchKey(host, papi, sapi, srsa, dataset_name, n = -1):
-    if (not papi in fetchKey.cache or
-        not dataset_name in fetchKey.cache[papi] or
-        not n in fetchKey.cache[papi][dataset_name]):
-        url = host + 'fpe/key'
-        url += '?ffs_name=' + dataset_name
-        url += '&papi=' + papi
-        if n >= 0:
-            url += '&key_number=' + str(n)
-        resp = requests.get(url, auth=http_auth(papi, sapi))
-        if resp.status_code != http.HTTPStatus.OK:
-            raise urllib.error.HTTPError(
-                url, resp.status_code,
-                http.HTTPStatus(resp.status_code).phrase,
-                resp.headers, resp.content)
-        key = json.loads(resp.content.decode())
+    if CONFIG.get_logging_verbose():
+        print(f'****** PERFORMING EXPENSIVE CALL ----- fetchKey for dataset {dataset_name}')
+    url = host + 'fpe/key'
+    url += '?ffs_name=' + dataset_name
+    url += '&papi=' + papi
+    if n >= 0:
+        url += '&key_number=' + str(n)
+    resp = requests.get(url, auth=http_auth(papi, sapi))
+    if resp.status_code != http.HTTPStatus.OK:
+        raise urllib.error.HTTPError(
+            url, resp.status_code,
+            http.HTTPStatus(resp.status_code).phrase,
+            resp.headers, resp.content)
+    key = json.loads(resp.content.decode())
 
-        prvkey = serialize.load_pem_private_key(
-            key['encrypted_private_key'].encode(), srsa.encode(),
-            crypto_backend())
-
-        key['unwrapped_data_key'] = prvkey.decrypt(
-            base64.b64decode(key['wrapped_data_key']),
-            crypto.asymmetric.padding.OAEP(
-                mgf=crypto.asymmetric.padding.MGF1(
-                    algorithm=crypto.hashes.SHA1()),
-                algorithm=crypto.hashes.SHA1(),
-                label=None))
-
-        if not papi in fetchKey.cache:
-            fetchKey.cache[papi] = {}
-        if not dataset_name in fetchKey.cache[papi]:
-            fetchKey.cache[papi][dataset_name] = {}
-
-        # the -1 entry points to the "current" key at the
-        # server. it is cached so that the next caller that
-        # wants the "current" key can get it, but it should
-        # be timed-out occasionally in case the "current"
-        # pointer changes at the server.
-        #
-        # that timeout is future work
-        if n == -1:
-            # -1 can be an index because keys are stored
-            # in a dictionary, not a list
-            fetchKey.cache[papi][dataset_name][n] = key
-
-        # also cache the key at its "real" identifier
-        n = int(key['key_number'])
-        fetchKey.cache[papi][dataset_name][n] = key
-
-    return fetchKey.cache[papi][dataset_name][n]
-fetchKey.cache = {}
+    return decrypt_key(key, srsa)
 
 def allKeysToNInCache(papi, dataset_name, n):
     present = True
@@ -178,6 +138,9 @@ def allKeysToNInCache(papi, dataset_name, n):
     return present
 
 def fetchAllKeys(host, papi, sapi, srsa, dataset_name):
+    if CONFIG.get_logging_verbose():
+        print(f'****** PERFORMING EXPENSIVE CALL ----- fetchAllKeys for dataset {dataset_name}')
+
     url=f"{host}fpe/def_keys?ffs_name={dataset_name}&papi={papi}"
     resp = requests.get(url, auth=http_auth(papi, sapi))
 
@@ -188,21 +151,18 @@ def fetchAllKeys(host, papi, sapi, srsa, dataset_name):
             resp.headers, resp.content)
     keys = json.loads(resp.content.decode())
 
-    if not papi in fetchKey.cache:
-        fetchKey.cache[papi] = {}
-    if not dataset_name in fetchKey.cache[papi]:
-        fetchKey.cache[papi][dataset_name] = {}
-
     prvkey = serialize.load_pem_private_key(
         keys[dataset_name]['encrypted_private_key'].encode(), srsa.encode(),
         crypto_backend())
     
+    all_keys = {}
     for i, enc_key in enumerate(keys[dataset_name]['keys']):
-        if i in fetchKey.cache[papi][dataset_name]:
+        if hasattr(fetchKey, 'cache') and (host, papi, sapi, srsa, dataset_name, i) in fetchKey.cache:
             continue
 
         key = {
             'encrypted_private_key': keys[dataset_name]['encrypted_private_key'],
+            'key_number': i,
             'wrapped_data_key': enc_key
         }
         key['unwrapped_data_key'] = prvkey.decrypt(
@@ -212,21 +172,18 @@ def fetchAllKeys(host, papi, sapi, srsa, dataset_name):
                     algorithm=crypto.hashes.SHA1()),
                 algorithm=crypto.hashes.SHA1(),
                 label=None))
-        fetchKey.cache[papi][dataset_name][i] = key
+        all_keys[i] = key
+        if hasattr(fetchKey, 'cache'):
+            fetchKey.cache.__setitem__((host, papi, sapi, srsa, dataset_name, i), key)
+    return all_keys
 
+@config_cache(maxsize=1, ttl=CONFIG.get_key_caching_ttl_seconds(), enable_cache=CONFIG.get_key_caching_structured())
 def fetchCurrentKeys(host, papi, sapi, srsa, dataset_name):
-    fetchAllKeys(host, papi, sapi, srsa, dataset_name)
-
-    return {key_num: key for key_num, key in sorted(fetchKey.cache[papi][dataset_name].items()) if key_num not in [-1]}
+    keys = fetchAllKeys(host, papi, sapi, srsa, dataset_name)
+    
+    return keys
 
 def flushKey(papi = None, dataset_name = None, n = None):
-    if papi == None:
-        fetchKey.cache = {}
-    elif papi in fetchKey.cache:
-        if dataset_name == None:
-            del fetchKey.cache[papi]
-        elif dataset_name in fetchKey.cache[papi]:
-            if n == None:
-                del fetchKey.cache[papi][dataset_name]
-            elif n in fetchKey.cache[papi][dataset_name]:
-                del fetchKey.cache[papi][dataset_name][n]
+    if hasattr(fetchKey, 'cache'):
+        fetchKey.cache.clear_cache()
+    pass
