@@ -191,7 +191,7 @@ class decryption:
                     # either case, increment the key usage
                     if hasattr(self, '_key'):
                         self._key['dec'] = self._key['algo'].decryptor(
-                            self._key['raw'], vec)
+                            self._key['unwrapped_data_key'], vec)
                         self._key['uses'] += 1
                         self._creds.add_event(dataset_name="", dataset_group_name="", billing_action="decrypt",
                             dataset_type="unstructured", key_number=0, count=1)

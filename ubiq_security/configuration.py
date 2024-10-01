@@ -37,7 +37,7 @@ def get_timestamp_granularity(value):
 
 class configInfo:
 
-    def __init__(self, event_reporting_wake_interval, event_reporting_minimum_count, event_reporting_flush_interval, event_reporting_trap_exceptions, event_reporting_timestamp_granularity, event_reporting_synchronous, logging_verbose, key_caching_unstructured, key_caching_encrypt):
+    def __init__(self, event_reporting_wake_interval, event_reporting_minimum_count, event_reporting_flush_interval, event_reporting_trap_exceptions, event_reporting_timestamp_granularity, event_reporting_synchronous, logging_verbose, key_caching_unstructured, key_caching_structured, key_caching_encrypt, key_caching_ttl_seconds):
         self.__event_reporting_wake_interval = event_reporting_wake_interval
         self.__event_reporting_minimum_count = event_reporting_minimum_count
         self.__event_reporting_flush_interval = event_reporting_flush_interval
@@ -46,7 +46,9 @@ class configInfo:
         self.__event_reporting_synchronous = event_reporting_synchronous
         self.__logging_verbose = logging_verbose
         self.__key_caching_unstructured = key_caching_unstructured
+        self.__key_caching_structured = key_caching_structured
         self.__key_caching_encrypt = key_caching_encrypt
+        self.__key_caching_ttl_seconds = key_caching_ttl_seconds
 
     def get_event_reporting_wake_interval(self):
         return self.__event_reporting_wake_interval
@@ -80,9 +82,17 @@ class configInfo:
         return self.__key_caching_unstructured
     key_caching_unstructured = property(get_key_caching_unstructured)
     
+    def get_key_caching_structured(self):
+        return self.__key_caching_structured
+    key_caching_structured = property(get_key_caching_structured)
+    
     def get_key_caching_encrypt(self):
         return self.__key_caching_encrypt
     key_caching_encrypt = property(get_key_caching_encrypt)
+    
+    def get_key_caching_ttl_seconds(self):
+        return self.__key_caching_ttl_seconds
+    key_caching_ttl_seconds = property(get_key_caching_ttl_seconds)
 
     def set(self):
         return (self.__event_reporting_wake_interval != None 
@@ -116,8 +126,12 @@ class ubiqConfiguration(configInfo):
                 if 'key_caching' in config:
                     if 'unstructured' in config['key_caching']:
                         self.__key_caching_unstructured = config['key_caching']['unstructured']
+                    if 'structured' in config['key_caching']:
+                        self.__key_caching_structured = config['key_caching']['structured']
                     if 'encrypt' in config['key_caching']:
                         self.__key_caching_encrypt = config['key_caching']['encrypt']
+                    if 'ttl_seconds' in config['key_caching']:
+                        self.__key_caching_ttl_seconds = config['key_caching']['ttl_seconds']
         except FileNotFoundError:
             # If file doesn't exist, use defaults
             self.set_defaults()
@@ -131,7 +145,9 @@ class ubiqConfiguration(configInfo):
         self.__event_reporting_synchronous = False
         self.__logging_verbose = False
         self.__key_caching_unstructured = True
+        self.__key_caching_structured = True
         self.__key_caching_encrypt = False
+        self.__key_caching_ttl_seconds = 1800
 
     def __init__(self, config_file = None):
 
@@ -143,7 +159,9 @@ class ubiqConfiguration(configInfo):
         self.__event_reporting_synchronous = None
         self.__logging_verbose = None
         self.__key_caching_unstructured = None
+        self.__key_caching_structured = None
         self.__key_caching_encrypt = None
+        self.__key_caching_ttl_seconds = None
 
         if (config_file == None):
             from os.path import expanduser
@@ -165,7 +183,9 @@ class ubiqConfiguration(configInfo):
             self.__event_reporting_synchronous,
             self.__logging_verbose,
             self.__key_caching_unstructured,
-            self.__key_caching_encrypt)
+            self.__key_caching_structured,
+            self.__key_caching_encrypt,
+            self.__key_caching_ttl_seconds)
         
         # If verbose, warn user if M2Crypto will not be used.
         if self.__logging_verbose:
