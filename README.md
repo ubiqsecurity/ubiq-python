@@ -420,6 +420,6 @@ Occasionally, you may encounter issues when interacting with the Ubiq API.
 
 
 [dashboard]:https://dashboard.ubiqsecurity.com/
-[credentials]:https://dev.ubiqsecurity.com/docs/how-to-create-api-keys
+[credentials]:https://dev.ubiqsecurity.com/docs/api-keys
 [apidocs]:https://dev.ubiqsecurity.com/docs/api
 [repository]:https://gitlab.com/ubiqsecurity/ubiq-python
