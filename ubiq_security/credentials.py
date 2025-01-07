@@ -9,14 +9,24 @@ from .events import events, eventsProcessor, syncEventsProcessor
 
 class credentialsInfo:
 
-    def __init__(self, access_key_id, secret_signing_key, secret_crypto_access_key, host, config_file, library_label):
+    def __init__(self, access_key_id, secret_signing_key, secret_crypto_access_key, host, config_file, library_label, config_obj):
         self.__access_key_id = access_key_id
         self.__secret_signing_key = secret_signing_key
         self.__secret_crypto_access_key = secret_crypto_access_key
+        
         self.__host = host
+        if (not self.__host.lower().startswith('http')):
+            self.__host = "https://" + self.__host
 
+        if (config_file != None and config_obj != None):
+               raise RuntimeError("Either config_file or config_obj should be set, but not both.")
+
+        if (config_obj != None):
+            self.__configuration = config_obj
+        else:
+            self.__configuration = ubiqConfiguration(config_file)
+        
         # Event Tracking
-        self.__configuration = ubiqConfiguration(config_file)
         self.__events = events(self, self.__configuration, library_label)
         if self.__configuration.get_event_reporting_synchronous():
             self.__eventsProcessor = syncEventsProcessor(self.__configuration, self.__events)
@@ -65,6 +75,7 @@ class credentialsInfo:
     def process_events(self):
         return self.__eventsProcessor.process()
 
+# TODO: Rename configCredentials and load_config_file cause they are confusing. (configurableCredentials? load_credentials_file?)
 class configCredentials(credentialsInfo):
 
     def load_config_file(self, credentials_file, profile):
@@ -90,8 +101,7 @@ class configCredentials(credentialsInfo):
         self.__host = p.get('SERVER', d.get('SERVER', UBIQ_HOST))
 
 
-    def __init__(self, credentials_file = None, profile = "default", config_file = None, library_label = None):
-
+    def __init__(self, credentials_file = None, profile = "default", config_file = None, library_label = None, config_obj = None):
         self.__access_key_id = None
         self.__secret_signing_key = None
         self.__secret_crypto_access_key = None
@@ -105,7 +115,7 @@ class configCredentials(credentialsInfo):
         if os.path.exists(credentials_file):
             self.load_config_file(credentials_file, profile)
 
-        credentialsInfo.__init__(self, self.__access_key_id , self.__secret_signing_key, self.__secret_crypto_access_key, self.__host, config_file, library_label)
+        credentialsInfo.__init__(self, self.__access_key_id , self.__secret_signing_key, self.__secret_crypto_access_key, self.__host, config_file, library_label, config_obj)
 
         if (not self.set()):
             if (self.__access_key_id == None or self.__access_key_id.strip() == ""):
@@ -119,12 +129,13 @@ class configCredentials(credentialsInfo):
 
 class credentials(credentialsInfo):
 
-    def __init__(self, access_key_id = None, secret_signing_key = None, secret_crypto_access_key = None, host = UBIQ_HOST, config_file = None, library_label = None):
+    def __init__(self, access_key_id = None, secret_signing_key = None, secret_crypto_access_key = None, host = UBIQ_HOST, config_file = None, library_label = None, config_obj = None):
         # If supplied value is None, use ENV variable, otherwise use supplied value.
         # If env value isn't set, use the supplied value anyways (None) but prevent an exception
         self.__access_key_id = (access_key_id, os.getenv('UBIQ_ACCESS_KEY_ID', access_key_id)) [access_key_id == None]
         self.__secret_signing_key = (secret_signing_key, os.getenv('UBIQ_SECRET_SIGNING_KEY', secret_signing_key)) [secret_signing_key == None]
         self.__secret_crypto_access_key = (secret_crypto_access_key, os.getenv('UBIQ_SECRET_CRYPTO_ACCESS_KEY', secret_crypto_access_key)) [secret_crypto_access_key == None]
+        config_file = (config_file, os.getenv('UBIQ_CONFIGURATION_FILE_PATH', config_file)) [config_file == None]
         self.__host = (host, os.getenv('UBIQ_SERVER', host)) [host == None]
 
         credentialsInfo.__init__(self, self.__access_key_id,
@@ -132,7 +143,8 @@ class credentials(credentialsInfo):
                                  self.__secret_crypto_access_key, 
                                  self.__host,
                                  config_file,
-                                 library_label)
+                                 library_label,
+                                 config_obj)
         
         if (not self.set()):
             if (self.__access_key_id == None or self.__access_key_id.strip() == ""):

@@ -95,7 +95,7 @@ class encryption:
         if response.status_code != http.HTTPStatus.CREATED:
             try:
                 response_json = response.json()
-            except JSONDecodeError:
+            except json.JSONDecodeError:
                 response_json = {}
             raise urllib.error.HTTPError(
                 url, response.status_code,

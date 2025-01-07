@@ -20,18 +20,14 @@ class Decryption:
         
         self._creds = creds
 
-        # If the host does not begin with either http or https
-        # insert https://
         self._host = creds.host
-        if (not self._host.lower().startswith('http')):
-            self._host = "https://" + self._host
         self._host += '/api/v0/'
 
         self._papi = creds.access_key_id
         self._sapi = creds.secret_signing_key
         self._srsa = creds.secret_crypto_access_key
 
-        self._dataset = fetchDataset(self._host, self._papi, self._sapi, dataset_name)
+        self._dataset = fetchDataset(self._creds, dataset_name)
 
     def Cipher(self, ct, twk = None):
         pth = self._dataset['passthrough']
@@ -50,8 +46,7 @@ class Decryption:
 
         ct, n = decKeyNumber(ct, ocs, self._dataset['msb_encoding_bits'])
         if not hasattr(self, '_key') or self._key['key_number'] != n:
-            self._key = fetchKey(self._host,
-                                 self._papi, self._sapi, self._srsa,
+            self._key = fetchKey(self._creds,
                                  self._dataset['name'], n)
             if self._dataset['encryption_algorithm'] == 'FF1':
                 self._ctx = ff1.Context(
