@@ -77,6 +77,7 @@ import ubiq_security as ubiq
 credentials = ubiq.configCredentials(config_file = "some-credential-file", profile = "some-profile")
 ```
 
+Configuration information can also be passed when creating your credentials object. See [Configuration](#configuration) below.
 
 ### Read credentials from ~/.ubiq/credentials and use the default profile
 ```python
@@ -88,6 +89,7 @@ credentials = ubiq.configCredentials()
 UBIQ_ACCESS_KEY_ID  
 UBIQ_SECRET_SIGNING_KEY  
 UBIQ_SECRET_CRYPTO_ACCESS_KEY  
+UBIQ_CONFIGURATION_FILE_PATH
 ```python
 credentials = ubiq.credentials()
 ```
@@ -342,9 +344,35 @@ ct_arr = ubiq_structured.EncryptForSearch(credentials, dataset_name, plain_text)
 ```
 
 
-### Configuration File
+### Configuration
 
-A sample configuration file is shown below.  The configuration is in JSON format.  
+A sample configuration file is shown below.  The configuration is in JSON format ([example](#example-configuration-json)).  Configuration can be set either as a file read from a path, or as a provided configuration object by reading from a dictionary.
+
+#### Reading from File
+
+By default, configuration is read in from `~/.ubiq/configuration`. To pass a different file, either by specifying the file as an argument to your credentials object:
+
+```python
+# config_file is an optional parameter on both credential object instantiation methods.
+# Credentials File and Profile or default credentials file and `default` profile.
+credentials = ubiq.configCredentials(credentials_file="...", profile="...", config_file= "...")
+# ENV Variables or explicit credentials as arguments
+credentials = ubiq.credentials(ACCESS_KEY_ID="...", SECRET_ACCESS_KEY="...", config_file= "...")
+```
+
+Or create a config object and pass that to credentials.
+
+```python
+
+configuration_dictionary = {"logging": {"verbose": True}}
+config = ubiq.ubiqConfiguration(config_file= "...", config_dict=configuration_dictionary)
+# Pass the object to credentials
+credentials = ubiq.credentials(config_obj=config)
+```
+
+**Notes on Arguments:**
+- When passing a `config_file` and `config_dict`, the config file will be read first, and the config dict will override the file settings.
+- When creating a credentials object, either a file path (`config_file`) or `config_obj` can be passed, but not both.
 
 #### Event Reporting
 The <b>event_reporting</b> section contains values to control how often the usage is reported.  
@@ -382,6 +410,7 @@ The <b>logging</b> section contains values to control logging levels.
 
 - <b>verbose</b> enables and disables logging output like event processing and caching.
 
+#### Example Configuration JSON
 
 ```json
 {
@@ -394,12 +423,7 @@ The <b>logging</b> section contains values to control logging levels.
   },
   "key_caching":{
     "unstructured": true,
-    "structured": true,
-    "encrypt": false,
-    "ttl_seconds": 1800
-  },
-  "logging": {
-    "verbose": true
+    "encrypt": false
   }
 }
 ```

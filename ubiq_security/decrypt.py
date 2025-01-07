@@ -182,7 +182,7 @@ class decryption:
                     # reused--see below. if not, then request a decryption
                     # of the key in the current header from the server
                     if not hasattr(self, '_key'):
-                        self._key = fetchDecryptKey(self._host, self._papi, self._sapi, self._srsa, key, client_id, alg)
+                        self._key = fetchDecryptKey(self._creds, key, client_id, alg)
 
                     # if the key object exists, create a new decryptor
                     # with the initialization vector from the header and
@@ -191,7 +191,7 @@ class decryption:
                     # either case, increment the key usage
                     if hasattr(self, '_key'):
                         self._key['dec'] = self._key['algo'].decryptor(
-                            self._key['unwrapped_data_key'], vec)
+                            self._key['raw'], vec)
                         self._key['uses'] += 1
                         self._creds.add_event(dataset_name="", dataset_group_name="", billing_action="decrypt",
                             dataset_type="unstructured", key_number=0, count=1)

@@ -101,40 +101,43 @@ class configInfo:
                 and self.__logging_verbose != None)
 
 class ubiqConfiguration(configInfo):
+    
+    def load_config_dict(self, config_dict):
+        if isinstance(config_dict, dict):
+            if 'event_reporting' in config_dict:
+                if 'wake_interval' in config_dict['event_reporting']:
+                    self.__event_reporting_wake_interval = config_dict['event_reporting']['wake_interval']
+                if 'minimum_count' in config_dict['event_reporting']:
+                    self.__event_reporting_minimum_count = config_dict['event_reporting']['minimum_count']
+                if 'flush_interval' in config_dict['event_reporting']:
+                    self.__event_reporting_flush_interval = config_dict['event_reporting']['flush_interval']
+                if 'trap_exceptions' in config_dict['event_reporting']:
+                    self.__event_reporting_trap_exceptions = config_dict['event_reporting']['trap_exceptions']
+                if 'timestamp_granularity' in config_dict['event_reporting']:
+                    self.__event_reporting_timestamp_granularity = get_timestamp_granularity(config_dict['event_reporting']['timestamp_granularity'])
+                if 'synchronous' in config_dict['event_reporting']:
+                    self.__event_reporting_synchronous = config_dict['event_reporting']['synchronous']
+            if 'logging' in config_dict:
+                if 'verbose' in config_dict['logging']:
+                    self.__logging_verbose = config_dict['logging']['verbose']
+            if 'key_caching' in config_dict:
+                if 'unstructured' in config_dict['key_caching']:
+                    self.__key_caching_unstructured = config_dict['key_caching']['unstructured']
+                if 'structured' in config_dict['key_caching']:
+                    self.__key_caching_structured = config_dict['key_caching']['structured']
+                if 'encrypt' in config_dict['key_caching']:
+                    self.__key_caching_encrypt = config_dict['key_caching']['encrypt']
+                if 'ttl_seconds' in config_dict['key_caching']:
+                    self.__key_caching_ttl_seconds = config_dict['key_caching']['ttl_seconds']
 
     def load_config_file(self, config_file):
         try:
             with open(config_file) as json_file:
                 config = json.load(json_file)
-                self.set_defaults()
-                if 'event_reporting' in config:
-                    if 'wake_interval' in config['event_reporting']:
-                        self.__event_reporting_wake_interval = config['event_reporting']['wake_interval']
-                    if 'minimum_count' in config['event_reporting']:
-                        self.__event_reporting_minimum_count = config['event_reporting']['minimum_count']
-                    if 'flush_interval' in config['event_reporting']:
-                        self.__event_reporting_flush_interval = config['event_reporting']['flush_interval']
-                    if 'trap_exceptions' in config['event_reporting']:
-                        self.__event_reporting_trap_exceptions = config['event_reporting']['trap_exceptions']
-                    if 'timestamp_granularity' in config['event_reporting']:
-                        self.__event_reporting_timestamp_granularity = get_timestamp_granularity(config['event_reporting']['timestamp_granularity'])
-                    if 'synchronous' in config['event_reporting']:
-                        self.__event_reporting_synchronous = config['event_reporting']['synchronous']
-                if 'logging' in config:
-                    if 'verbose' in config['logging']:
-                        self.__logging_verbose = config['logging']['verbose']
-                if 'key_caching' in config:
-                    if 'unstructured' in config['key_caching']:
-                        self.__key_caching_unstructured = config['key_caching']['unstructured']
-                    if 'structured' in config['key_caching']:
-                        self.__key_caching_structured = config['key_caching']['structured']
-                    if 'encrypt' in config['key_caching']:
-                        self.__key_caching_encrypt = config['key_caching']['encrypt']
-                    if 'ttl_seconds' in config['key_caching']:
-                        self.__key_caching_ttl_seconds = config['key_caching']['ttl_seconds']
+                self.load_config_dict(config)
         except FileNotFoundError:
             # If file doesn't exist, use defaults
-            self.set_defaults()
+            pass
 
     def set_defaults(self):
         self.__event_reporting_wake_interval = 10
@@ -149,8 +152,7 @@ class ubiqConfiguration(configInfo):
         self.__key_caching_encrypt = False
         self.__key_caching_ttl_seconds = 1800
 
-    def __init__(self, config_file = None):
-
+    def __init__(self, config_file = None, config_dict = None):
         self.__event_reporting_wake_interval = None
         self.__event_reporting_minimum_count = None
         self.__event_reporting_flush_interval = None
@@ -163,6 +165,8 @@ class ubiqConfiguration(configInfo):
         self.__key_caching_encrypt = None
         self.__key_caching_ttl_seconds = None
 
+        self.set_defaults()
+        
         if (config_file == None):
             from os.path import expanduser
             home = expanduser("~")
@@ -170,8 +174,10 @@ class ubiqConfiguration(configInfo):
 
         if os.path.exists(config_file):
             self.load_config_file(config_file)
-        else:
-            self.set_defaults()
+
+        # Merge config dict onto Config File (if exists)
+        if (config_dict != None):
+            self.load_config_dict(config_dict)
 
         configInfo.__init__(
             self, 
