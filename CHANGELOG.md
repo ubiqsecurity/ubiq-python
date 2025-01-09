@@ -1,5 +1,10 @@
 # Changelog
 
+# 2.3.2 - 2025-01-07
+* Added ability to pass in a configuration object as an alternative to file based
+* Key caching improvement for unstructured decryption
+* Key caching options for structured encryption / decryption
+
 # 2.3.1 - 2024-07-30
 * Added synchronous event processor 
 * Support for situations where M2Crypto cannot be installed.
