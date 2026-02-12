@@ -3,7 +3,7 @@
 #
 #    pip-compile --output-file=requirements.txt
 #
-cryptography==43.0.0
+cryptography==46.0.5
     # via ubiq-security (setup.py)
 cffi==1.16.0
     # via cryptography
